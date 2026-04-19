@@ -1,0 +1,21 @@
+name: CI Delta Smoke Release
+
+on:
+  pull_request_target:
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  SMOKE_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
