@@ -1,5 +1,9 @@
 # ci-delta
 
+[![CI](https://github.com/tengfone/ci-delta/actions/workflows/ci.yml/badge.svg)](https://github.com/tengfone/ci-delta/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/tengfone/ci-delta?sort=semver)](https://github.com/tengfone/ci-delta/releases)
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-ci--delta-0969da?logo=github)](https://github.com/marketplace/actions/ci-delta)
+
 Semantic diff reports for CI/CD config changes.
 
 A YAML diff tells you what text changed.
@@ -26,24 +30,27 @@ Like `terraform plan`, but for GitHub Actions.
 
 ## CLI
 
-Install or run with npm:
+The CLI is packaged and verified before release. npm publication is still
+pending, so run it from a checkout until the package is published:
 
 ```bash
-npx ci-delta github-actions --base origin/main --head HEAD
+npm ci
+npm run build
+node dist/cli.js github-actions --base origin/main --head HEAD
 ```
 
 Provider aliases:
 
 ```bash
-npx ci-delta gha --base origin/main --head HEAD
-npx ci-delta github --base origin/main --head HEAD
+node dist/cli.js gha --base origin/main --head HEAD
+node dist/cli.js github --base origin/main --head HEAD
 ```
 
 Output formats:
 
 ```bash
-npx ci-delta github-actions --base origin/main --head HEAD --format markdown
-npx ci-delta github-actions --base origin/main --head HEAD --format json
+node dist/cli.js github-actions --base origin/main --head HEAD --format markdown
+node dist/cli.js github-actions --base origin/main --head HEAD --format json
 ```
 
 JSON output includes a top-level `schemaVersion` field. The v0 JSON report
