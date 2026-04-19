@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/tengfone/ci-delta/actions/workflows/ci.yml/badge.svg)](https://github.com/tengfone/ci-delta/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/tengfone/ci-delta?sort=semver)](https://github.com/tengfone/ci-delta/releases)
+[![npm](https://img.shields.io/npm/v/ci-delta)](https://www.npmjs.com/package/ci-delta)
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-ci--delta-0969da?logo=github)](https://github.com/marketplace/actions/ci-delta)
 
 Semantic diff reports for CI/CD config changes.
@@ -30,27 +31,24 @@ Like `terraform plan`, but for GitHub Actions.
 
 ## CLI
 
-The CLI is packaged and verified before release. npm publication is still
-pending, so run it from a checkout until the package is published:
+Run the CLI with npm:
 
 ```bash
-npm ci
-npm run build
-node dist/cli.js github-actions --base origin/main --head HEAD
+npx ci-delta github-actions --base origin/main --head HEAD
 ```
 
 Provider aliases:
 
 ```bash
-node dist/cli.js gha --base origin/main --head HEAD
-node dist/cli.js github --base origin/main --head HEAD
+npx ci-delta gha --base origin/main --head HEAD
+npx ci-delta github --base origin/main --head HEAD
 ```
 
 Output formats:
 
 ```bash
-node dist/cli.js github-actions --base origin/main --head HEAD --format markdown
-node dist/cli.js github-actions --base origin/main --head HEAD --format json
+npx ci-delta github-actions --base origin/main --head HEAD --format markdown
+npx ci-delta github-actions --base origin/main --head HEAD --format json
 ```
 
 JSON output includes a top-level `schemaVersion` field. The v0 JSON report
