@@ -16,7 +16,11 @@
     "build": "tsup src/index.ts src/cli.ts src/action.ts --format esm --dts --out-dir dist --clean",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepack": "npm run build && npm test && npm run typecheck"
   },
   "keywords": [
     "github-actions",
@@ -35,6 +39,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.2",
+    "prettier": "^3.6.2",
     "tsup": "^8.3.5",
     "typescript": "^5.8.3",
     "vitest": "^2.1.9"

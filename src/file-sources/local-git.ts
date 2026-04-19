@@ -12,9 +12,13 @@ export class LocalGitFileSource {
   ) {}
 
   public async listFiles(globs: string[]): Promise<FileSnapshot[]> {
-    const { stdout } = await execFileAsync("git", ["ls-tree", "-r", "--name-only", this.ref], {
-      cwd: this.repoRoot,
-    });
+    const { stdout } = await execFileAsync(
+      "git",
+      ["ls-tree", "-r", "--name-only", this.ref],
+      {
+        cwd: this.repoRoot,
+      },
+    );
 
     const files = stdout
       .split("\n")
@@ -22,16 +26,23 @@ export class LocalGitFileSource {
       .filter(Boolean)
       .filter((path) => globs.some((glob) => minimatch(path, glob)));
 
-    return Promise.all(files.map(async (path) => this.readFile(path))).then((snapshots) =>
-      snapshots.filter((snapshot): snapshot is FileSnapshot => snapshot !== null),
+    return Promise.all(files.map(async (path) => this.readFile(path))).then(
+      (snapshots) =>
+        snapshots.filter(
+          (snapshot): snapshot is FileSnapshot => snapshot !== null,
+        ),
     );
   }
 
   public async readFile(path: string): Promise<FileSnapshot | null> {
     try {
-      const { stdout } = await execFileAsync("git", ["show", `${this.ref}:${path}`], {
-        cwd: this.repoRoot,
-      });
+      const { stdout } = await execFileAsync(
+        "git",
+        ["show", `${this.ref}:${path}`],
+        {
+          cwd: this.repoRoot,
+        },
+      );
 
       return {
         path,

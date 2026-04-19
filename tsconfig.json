@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "types": ["node", "vitest/globals"]
   },
   "include": ["src", "test"]

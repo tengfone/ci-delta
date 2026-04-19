@@ -53,8 +53,14 @@ async function run(): Promise<void> {
   const adapter = new GitHubActionsAdapter();
   const globs = [...adapter.workflowGlobs, ...options.include];
 
-  const baseSource = new LocalGitFileSource(path.resolve(options.repoRoot), options.base);
-  const headSource = new LocalGitFileSource(path.resolve(options.repoRoot), options.head);
+  const baseSource = new LocalGitFileSource(
+    path.resolve(options.repoRoot),
+    options.base,
+  );
+  const headSource = new LocalGitFileSource(
+    path.resolve(options.repoRoot),
+    options.head,
+  );
 
   const [baseFiles, headFiles] = await Promise.all([
     baseSource.listFiles(globs),
@@ -65,7 +71,9 @@ async function run(): Promise<void> {
   const headSnapshot = await adapter.parse(headFiles);
 
   const findings = await adapter.diff(baseSnapshot, headSnapshot);
-  const changedFiles = unique([...baseFiles, ...headFiles].map((file) => file.path));
+  const changedFiles = unique(
+    [...baseFiles, ...headFiles].map((file) => file.path),
+  );
 
   const report = buildReport({
     provider: adapter.id,
@@ -75,7 +83,8 @@ async function run(): Promise<void> {
     findings,
   });
 
-  const rendered = options.format === "json" ? reportToJson(report) : reportToMarkdown(report);
+  const rendered =
+    options.format === "json" ? reportToJson(report) : reportToMarkdown(report);
 
   if (options.output) {
     await fs.writeFile(options.output, rendered, "utf8");
@@ -89,7 +98,9 @@ async function run(): Promise<void> {
 }
 
 run().catch((error) => {
-  process.stderr.write(`ci-delta runtime error: ${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(
+    `ci-delta runtime error: ${error instanceof Error ? error.message : String(error)}\n`,
+  );
   process.exitCode = 3;
 });
 

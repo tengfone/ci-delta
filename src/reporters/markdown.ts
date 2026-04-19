@@ -1,11 +1,22 @@
 import type { Report, Severity } from "../core/types.js";
 
-const orderedSeverities: Severity[] = ["critical", "high", "medium", "low", "info"];
+const orderedSeverities: Severity[] = [
+  "critical",
+  "high",
+  "medium",
+  "low",
+  "info",
+];
 
 export function reportToMarkdown(report: Report): string {
   const lines: string[] = [];
 
-  lines.push("## CI Delta Report", "", `Risk: ${capitalize(report.maxSeverity)}`, "");
+  lines.push(
+    "## CI Delta Report",
+    "",
+    `Risk: ${capitalize(report.maxSeverity)}`,
+    "",
+  );
 
   if (report.changedFiles.length === 0) {
     lines.push("No GitHub Actions workflow changes detected.");
@@ -18,7 +29,9 @@ export function reportToMarkdown(report: Report): string {
   }
 
   for (const severity of orderedSeverities) {
-    const matches = report.findings.filter((finding) => finding.severity === severity);
+    const matches = report.findings.filter(
+      (finding) => finding.severity === severity,
+    );
     if (matches.length === 0) {
       continue;
     }
