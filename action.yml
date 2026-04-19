@@ -1,0 +1,25 @@
+name: ci-delta
+
+description: Semantic diff reports for CI/CD config changes
+
+inputs:
+  provider:
+    description: github-actions for v0
+    required: false
+    default: github-actions
+  comment:
+    description: Post or update a PR comment
+    required: false
+    default: "true"
+  fail-on:
+    description: Severity threshold that fails the check
+    required: false
+    default: none
+  format:
+    description: markdown or json
+    required: false
+    default: markdown
+
+runs:
+  using: node20
+  main: dist/action.js
