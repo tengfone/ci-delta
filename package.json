@@ -1,0 +1,42 @@
+{
+  "name": "ci-delta",
+  "version": "0.1.0",
+  "description": "Semantic diff reports for CI/CD config changes",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ci-delta": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "action.yml",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts src/cli.ts src/action.ts --format esm --dts --out-dir dist --clean",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "github-actions",
+    "security",
+    "ci",
+    "cd",
+    "workflow"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.3",
+    "minimatch": "^9.0.5",
+    "yaml": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.9"
+  }
+}
