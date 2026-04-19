@@ -2,4 +2,3 @@ node_modules/
 coverage/
 .vitest/
 .DS_Store
-dist/

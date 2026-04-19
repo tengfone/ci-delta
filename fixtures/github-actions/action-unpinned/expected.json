@@ -1,0 +1,5 @@
+{
+  "changedFiles": [".github/workflows/ci.yml"],
+  "maxSeverity": "high",
+  "findings": [{ "id": "action-unpinned", "severity": "high", "job": "test" }]
+}

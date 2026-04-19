@@ -1,0 +1,7 @@
+name: Release
+on: pull_request_target
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo release

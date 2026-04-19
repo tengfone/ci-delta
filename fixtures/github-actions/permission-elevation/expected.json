@@ -1,0 +1,5 @@
+{
+  "changedFiles": [".github/workflows/release.yml"],
+  "maxSeverity": "high",
+  "findings": [{ "id": "permission-sensitive-write-added", "severity": "high" }]
+}

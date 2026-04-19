@@ -1,0 +1,9 @@
+name: Release
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

@@ -1,0 +1,9 @@
+{
+  "changedFiles": [".github/workflows/deploy.yml"],
+  "maxSeverity": "critical",
+  "findings": [
+    { "id": "permission-id-token-write-added", "severity": "critical" },
+    { "id": "oidc-cloud-auth-added", "severity": "critical", "job": "deploy" },
+    { "id": "action-added", "severity": "medium", "job": "deploy" }
+  ]
+}

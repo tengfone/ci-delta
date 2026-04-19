@@ -19,6 +19,10 @@ inputs:
     description: markdown or json
     required: false
     default: markdown
+  github-token:
+    description: GitHub token used to read workflow files and post PR comments
+    required: false
+    default: ${{ github.token }}
 
 runs:
   using: node20

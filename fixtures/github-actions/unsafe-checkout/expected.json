@@ -1,0 +1,21 @@
+{
+  "changedFiles": [".github/workflows/release.yml"],
+  "maxSeverity": "critical",
+  "findings": [
+    {
+      "id": "untrusted-checkout-with-write-token",
+      "severity": "critical",
+      "job": "release"
+    },
+    {
+      "id": "untrusted-checkout-with-secrets",
+      "severity": "critical",
+      "job": "release"
+    },
+    { "id": "permission-id-token-write-added", "severity": "critical" },
+    { "id": "secret-with-pr-target", "severity": "critical", "job": "release" },
+    { "id": "trigger-pull-request-target-added", "severity": "critical" },
+    { "id": "permission-sensitive-write-added", "severity": "high" },
+    { "id": "trigger-event-removed", "severity": "low" }
+  ]
+}

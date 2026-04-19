@@ -1,89 +1,63 @@
-# Production Gap Report
+# Production Readiness Report
 
-## Current package manager
+## Current status
 
-- The repository uses **npm** (detected via `package-lock.json` and successful `npm install`).
+The v0 GitHub Actions implementation is now in place:
 
-## Current scripts
+- npm CLI with `github-actions`, `gha`, and `github` provider aliases
+- Shared comparison engine used by both CLI and GitHub Action paths
+- Local git file source using `git ls-tree` and `git show`
+- GitHub API file source using tree/blob reads, including fork PR support
+- Normalized GitHub Actions parser for triggers, permissions, jobs, steps, runners, services, containers, environments, and `needs`
+- Semantic finding model with stable severities and categories
+- Markdown and JSON reporters
+- GitHub Action wrapper with PR context detection, job summary output, sticky comment upsert, and `fail-on`
+- Golden fixture coverage for the v0 risk scenarios
 
-From `package.json`:
+## Verification gate
 
-- `build`: `tsup src/index.ts src/cli.ts src/action.ts --format esm --dts --out-dir dist --clean`
-- `test`: `vitest run`
-- `test:watch`: `vitest`
-- `lint`: `tsc --noEmit`
+The expected production gate is:
 
-Notably missing compared to the hardening plan:
+```bash
+npm run prepack
+```
 
-- `typecheck`
-- `format`
-- `format:check`
-- `prepack`
+That runs:
 
-## Current architecture
+- `npm run lint`
+- `npm run format:check`
+- `npm test`
+- `npm run build`
 
-Current repository structure indicates an early scaffold:
+## Implemented fixture coverage
 
-- TypeScript project with `src/` and `test/`
-- CLI entrypoint (`src/cli.ts`, `src/cli/index.ts`)
-- Action entrypoint stubs (`src/action.ts`, `src/action/index.ts`)
-- Core types (`src/core/types.ts`, `src/core/severity.ts`, `src/core/report.ts`)
-- Local git file source (`src/file-sources/local-git.ts`)
-- Reporters (`src/reporters/markdown.ts`, `src/reporters/json.ts`)
-- Action metadata (`action.yml`)
+The GitHub Actions golden fixtures cover:
 
-No production docs folder existed before this milestone, and no production schema/config/rule docs exist yet.
+- `pull-request-target-added`
+- `permission-elevation`
+- `oidc-added`
+- `secret-added`
+- `unsafe-checkout`
+- `path-filter-removed`
+- `production-environment-added`
+- `action-unpinned`
+- `self-hosted-runner-added`
+- `deploy-needs-removed`
+- `no-change`
+- `invalid-yaml`
 
-## Passing checks
+## Remaining production hardening
 
-Commands executed and outcomes:
+These are outside the v0 plan but worth doing before a public release:
 
-- `npm install` ✅ passed
-- `npm test` ✅ passed (2 test files, 3 tests)
-- `npm run build` ✅ passed
+- Add `SECURITY.md`, `CONTRIBUTING.md`, issue templates, and release notes workflow
+- Add Dependabot and CodeQL configuration
+- Run install-from-packed-tarball verification in CI
+- Add JSON schema/versioning for machine-consumed reports
+- Add pagination handling beyond the first 100 PR comments
+- Add integration tests against a real temporary GitHub repository
+- Add more examples for reusable workflows and organization-specific permission policies
 
-## Failing checks
+## Dependency audit
 
-Commands executed and outcomes:
-
-- `npm run typecheck` ❌ failed because script is missing from `package.json`
-- `npm run lint` ❌ failed with TypeScript rootDir/include mismatch:
-  - `test/*.ts` included in project
-  - `compilerOptions.rootDir` set to `src`
-  - causes TS6059 errors for test files outside `rootDir`
-
-## Missing production pieces
-
-Relative to the production-ready definition and milestone sequence, key gaps include:
-
-- Script completeness (`typecheck`, formatting, `prepack`)
-- CI workflow coverage for install/lint/format/typecheck/test/build
-- Stable domain model and schema validation (`schemaVersion`, Zod schemas)
-- Parser fixture suite for GitHub Actions workflow forms and invalid YAML handling
-- Deterministic semantic diff engine and rule engine coverage
-- Rule documentation and stable rule IDs
-- Config file parsing/validation and docs
-- GitHub API file source for safe PR analysis without checkout
-- Sticky PR comment implementation in Action wrapper
-- Golden fixtures for risk scenarios
-- OSS hygiene files (SECURITY, CONTRIBUTING, templates, Dependabot, CodeQL, release workflow)
-- Release process hardening and pack/install verification from tarball
-
-## Risky assumptions
-
-Current risks/assumptions observed in the scaffold state:
-
-- `lint` currently doubles as `typecheck`; script naming is unclear and mismatched with required checks.
-- TypeScript config assumes a single `rootDir: src` while tests are compiled in the same program, causing CI brittleness.
-- Action wrapper appears stubbed; safety guarantees (no checkout, no PR code execution) are not yet proven.
-- No explicit JSON schema versioning/tests found, so downstream API stability is not guaranteed yet.
-- No evidence yet of deterministic rule evidence enforcement (`id`, `severity`, `confidence`, evidence completeness).
-
-## Recommended next milestone
-
-Proceed to **Milestone 1 — Stabilize project foundation**:
-
-1. Add/normalize required scripts (`typecheck`, `format`, `format:check`, `prepack`).
-2. Fix TS project layout so lint/typecheck pass cleanly with tests.
-3. Add CI workflow for push/PR covering install, lint, format check, typecheck, test, build.
-4. Re-run all baseline checks to establish a reliable foundation before semantic/diff work.
+`npm audit --audit-level=moderate` currently reports 0 vulnerabilities.

@@ -1,0 +1,12 @@
+{
+  "changedFiles": [".github/workflows/deploy.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "possible-deploy-gate-removed",
+      "severity": "high",
+      "job": "deploy"
+    },
+    { "id": "job-dependency-removed", "severity": "medium", "job": "deploy" }
+  ]
+}

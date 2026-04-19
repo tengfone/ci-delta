@@ -1,0 +1,2 @@
+dist/
+fixtures/github-actions/invalid-yaml/head/.github/workflows/ci.yml

@@ -4,13 +4,10 @@ import type {
   Finding,
   ProviderAdapter,
 } from "../../core/types.js";
+import { diffWorkflows } from "./diff.js";
+import { normalizeWorkflow, type GitHubActionsWorkflow } from "./normalize.js";
 
-export interface GitHubActionsWorkflow {
-  path: string;
-  raw: string;
-  parsed: unknown;
-  name?: string;
-}
+export type { GitHubActionsWorkflow } from "./normalize.js";
 
 export interface GitHubActionsSnapshot {
   workflows: GitHubActionsWorkflow[];
@@ -48,14 +45,7 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
         continue;
       }
 
-      const parsed = doc.toJSON() as Record<string, unknown>;
-
-      workflows.push({
-        path: file.path,
-        raw: file.content,
-        parsed,
-        name: typeof parsed.name === "string" ? parsed.name : undefined,
-      });
+      workflows.push(normalizeWorkflow(file.path, file.content, doc.toJSON()));
     }
 
     return { workflows, parseFindings };
@@ -65,42 +55,23 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
     base: GitHubActionsSnapshot,
     head: GitHubActionsSnapshot,
   ): Promise<Finding[]> {
-    const findings: Finding[] = [];
-    findings.push(...base.parseFindings, ...head.parseFindings);
+    const parseErrorPaths = new Set(
+      [...base.parseFindings, ...head.parseFindings].map(
+        (finding) => finding.file,
+      ),
+    );
 
-    const basePaths = new Set(base.workflows.map((workflow) => workflow.path));
-    const headPaths = new Set(head.workflows.map((workflow) => workflow.path));
-
-    for (const path of headPaths) {
-      if (!basePaths.has(path)) {
-        findings.push({
-          id: "workflow-added",
-          title: "Workflow file added",
-          severity: "medium",
-          category: "config",
-          file: path,
-          evidence: [`New workflow file detected: ${path}`],
-          recommendation:
-            "Review new workflow triggers and permissions before merge.",
-        });
-      }
-    }
-
-    for (const path of basePaths) {
-      if (!headPaths.has(path)) {
-        findings.push({
-          id: "workflow-removed",
-          title: "Workflow file removed",
-          severity: "medium",
-          category: "config",
-          file: path,
-          evidence: [`Workflow file removed: ${path}`],
-          recommendation:
-            "Ensure the removal is intentional and does not break required checks.",
-        });
-      }
-    }
-
-    return findings;
+    return [
+      ...base.parseFindings,
+      ...head.parseFindings,
+      ...diffWorkflows(
+        base.workflows.filter(
+          (workflow) => !parseErrorPaths.has(workflow.path),
+        ),
+        head.workflows.filter(
+          (workflow) => !parseErrorPaths.has(workflow.path),
+        ),
+      ),
+    ];
   }
 }

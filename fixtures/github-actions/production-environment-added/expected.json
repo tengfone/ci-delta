@@ -1,0 +1,7 @@
+{
+  "changedFiles": [".github/workflows/deploy.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    { "id": "deployment-production-added", "severity": "high", "job": "deploy" }
+  ]
+}

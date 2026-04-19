@@ -1,0 +1,8 @@
+{
+  "changedFiles": [".github/workflows/ci.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    { "id": "trigger-filter-widened", "severity": "high" },
+    { "id": "trigger-path-filter-removed", "severity": "medium" }
+  ]
+}

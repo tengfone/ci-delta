@@ -1,0 +1,8 @@
+{
+  "changedFiles": [".github/workflows/release.yml"],
+  "maxSeverity": "critical",
+  "findings": [
+    { "id": "trigger-pull-request-target-added", "severity": "critical" },
+    { "id": "trigger-event-removed", "severity": "low" }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "changedFiles": [".github/workflows/ci.yml"],
+  "maxSeverity": "high",
+  "findings": [{ "id": "workflow-parse-error", "severity": "high" }]
+}

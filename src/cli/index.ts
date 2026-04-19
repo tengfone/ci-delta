@@ -2,7 +2,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { Command } from "commander";
-import { buildReport } from "../core/report.js";
+import { compareSources } from "../core/engine.js";
 import { meetsThreshold } from "../core/severity.js";
 import type { Severity } from "../core/types.js";
 import { LocalGitFileSource } from "../file-sources/local-git.js";
@@ -62,25 +62,13 @@ async function run(): Promise<void> {
     options.head,
   );
 
-  const [baseFiles, headFiles] = await Promise.all([
-    baseSource.listFiles(globs),
-    headSource.listFiles(globs),
-  ]);
-
-  const baseSnapshot = await adapter.parse(baseFiles);
-  const headSnapshot = await adapter.parse(headFiles);
-
-  const findings = await adapter.diff(baseSnapshot, headSnapshot);
-  const changedFiles = unique(
-    [...baseFiles, ...headFiles].map((file) => file.path),
-  );
-
-  const report = buildReport({
-    provider: adapter.id,
+  const report = await compareSources({
+    provider: adapter,
+    baseSource,
+    headSource,
+    globs,
     baseRef: options.base,
     headRef: options.head,
-    changedFiles,
-    findings,
   });
 
   const rendered =
@@ -92,7 +80,7 @@ async function run(): Promise<void> {
     process.stdout.write(`${rendered}\n`);
   }
 
-  if (meetsThreshold(findings, options.failOn)) {
+  if (meetsThreshold(report.findings, options.failOn)) {
     process.exitCode = 1;
   }
 }
@@ -106,8 +94,4 @@ run().catch((error) => {
 
 function collectIncludes(value: string, previous: string[]): string[] {
   return [...previous, value];
-}
-
-function unique(values: string[]): string[] {
-  return [...new Set(values)];
 }

@@ -1,0 +1,7 @@
+{
+  "changedFiles": [".github/workflows/build.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    { "id": "self-hosted-runner-added", "severity": "high", "job": "build" }
+  ]
+}

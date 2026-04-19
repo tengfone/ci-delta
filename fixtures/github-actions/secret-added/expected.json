@@ -1,0 +1,11 @@
+{
+  "changedFiles": [".github/workflows/publish.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "secret-in-run-command-added",
+      "severity": "high",
+      "job": "publish"
+    }
+  ]
+}
