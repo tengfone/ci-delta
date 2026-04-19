@@ -85,7 +85,7 @@ jobs:
   ci-delta:
     runs-on: ubuntu-latest
     steps:
-      - uses: yourname/ci-delta@v0
+      - uses: tengfone/ci-delta@v0
         with:
           provider: github-actions
           comment: true
@@ -161,6 +161,7 @@ npm run format:check
 npm run typecheck
 npm test
 npm run build
+npm run verify:action
 ```
 
 The production packaging gate is:
@@ -168,6 +169,8 @@ The production packaging gate is:
 ```bash
 npm run prepack
 ```
+
+`npm run prepack` type-checks, checks formatting, runs tests, rebuilds `dist`, and verifies that `action.yml` points at a standalone Node 24 action bundle.
 
 Fixtures live in `fixtures/github-actions`. Each fixture has `base`, `head`, `expected.json`, and `expected.md` files and is exercised by the Vitest suite.
 
