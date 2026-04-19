@@ -30,3 +30,13 @@ Aliases:
 npx ci-delta gha --base origin/main --head HEAD
 npx ci-delta github --base origin/main --head HEAD
 ```
+
+## Development checks
+
+- `npm run lint` — TypeScript typecheck alias
+- `npm run typecheck` — strict type checking
+- `npm run format:check` — Prettier formatting verification
+- `npm test` — unit tests
+- `npm run build` — tsup build for library, CLI, and action entrypoints
+
+`npm run prepack` runs the production packaging gate (`lint`, `format:check`, `test`, `build`).
