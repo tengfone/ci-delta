@@ -1,0 +1,22 @@
+name: CI Delta Smoke Risk
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  smoke-risk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Touch a secret reference
+        run: echo "${{ secrets.CI_DELTA_SMOKE_TOKEN }}"
