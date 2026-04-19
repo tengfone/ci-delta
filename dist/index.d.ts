@@ -144,6 +144,7 @@ declare class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnaps
 
 declare function reportToMarkdown(report: Report): string;
 
+declare const reportSchemaVersion = "ci-delta.report.v1";
 declare function reportToJson(report: Report): string;
 
 declare class LocalGitFileSource {
@@ -181,4 +182,4 @@ declare class GitHubApiFileSource implements FileSource {
 }
 declare function parseGitHubRepository(fullName: string): GitHubRepositoryRef;
 
-export { type CompareSourcesParams, type FileSnapshot, type FileSource, type Finding, type FindingCategory, GitHubActionsAdapter, type GitHubActionsSnapshot, type GitHubActionsWorkflow, GitHubApiFileSource, type GitHubApiFileSourceOptions, type GitHubRepositoryRef, type JsonObject, LocalGitFileSource, type NormalizedJob, type NormalizedPermissions, type NormalizedService, type NormalizedStep, type NormalizedTrigger, type NormalizedTriggers, type PermissionAccess, type PermissionMode, type ProviderAdapter, type Report, type Severity, asRecord, buildReport, changedFilePaths, compareSeverity, compareSources, explicitWriteScopes, getSummary, hasWritePermission, maxSeverity, meetsThreshold, normalizeJobs, normalizePermissions, normalizeTriggers, normalizeWorkflow, parseGitHubRepository, permissionAccess, reportToJson, reportToMarkdown, stringList, stringValue };
+export { type CompareSourcesParams, type FileSnapshot, type FileSource, type Finding, type FindingCategory, GitHubActionsAdapter, type GitHubActionsSnapshot, type GitHubActionsWorkflow, GitHubApiFileSource, type GitHubApiFileSourceOptions, type GitHubRepositoryRef, type JsonObject, LocalGitFileSource, type NormalizedJob, type NormalizedPermissions, type NormalizedService, type NormalizedStep, type NormalizedTrigger, type NormalizedTriggers, type PermissionAccess, type PermissionMode, type ProviderAdapter, type Report, type Severity, asRecord, buildReport, changedFilePaths, compareSeverity, compareSources, explicitWriteScopes, getSummary, hasWritePermission, maxSeverity, meetsThreshold, normalizeJobs, normalizePermissions, normalizeTriggers, normalizeWorkflow, parseGitHubRepository, permissionAccess, reportSchemaVersion, reportToJson, reportToMarkdown, stringList, stringValue };

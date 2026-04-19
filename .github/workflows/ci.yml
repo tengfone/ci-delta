@@ -24,3 +24,6 @@ jobs:
 
       - name: Verify production package
         run: npm run prepack
+
+      - name: Verify packed npm install
+        run: npm run verify:package

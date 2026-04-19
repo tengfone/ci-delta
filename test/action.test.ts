@@ -172,6 +172,55 @@ describe("upsertStickyComment", () => {
       body: { body: "<!-- ci-delta-report -->\nnew report" },
     });
   });
+
+  it("finds an existing sticky comment after the first comment page", async () => {
+    const calls: Array<{ url: string; method: string; body?: unknown }> = [];
+    const fetchMock: typeof fetch = async (input, init) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      calls.push({
+        url,
+        method,
+        body:
+          typeof init?.body === "string" ? JSON.parse(init.body) : undefined,
+      });
+
+      if (url.endsWith("?per_page=100&page=1")) {
+        return jsonResponse(
+          Array.from({ length: 100 }, (_, index) => ({
+            id: index + 1,
+            body: `regular comment ${index + 1}`,
+          })),
+        );
+      }
+
+      if (url.endsWith("?per_page=100&page=2")) {
+        return jsonResponse([
+          { id: 125, body: "<!-- ci-delta-report -->\nold report" },
+        ]);
+      }
+
+      return jsonResponse({ id: 125 });
+    };
+
+    await upsertStickyComment({
+      apiUrl: "https://api.github.test",
+      token: "token",
+      repository: { owner: "acme", repo: "repo" },
+      issueNumber: 42,
+      body: "<!-- ci-delta-report -->\nnew report",
+      fetchImpl: fetchMock,
+    });
+
+    expect(calls.map((call) => call.url)).toContain(
+      "https://api.github.test/repos/acme/repo/issues/42/comments?per_page=100&page=2",
+    );
+    expect(calls.at(-1)).toEqual({
+      url: "https://api.github.test/repos/acme/repo/issues/comments/125",
+      method: "PATCH",
+      body: { body: "<!-- ci-delta-report -->\nnew report" },
+    });
+  });
 });
 
 function createGitHubFetchMock(refs: Record<string, Record<string, string>>): {
@@ -224,7 +273,7 @@ function createGitHubFetchMock(refs: Record<string, Record<string, string>>): {
 
     if (
       url ===
-      "https://api.github.test/repos/acme/repo/issues/42/comments?per_page=100"
+      "https://api.github.test/repos/acme/repo/issues/42/comments?per_page=100&page=1"
     ) {
       return jsonResponse([]);
     }

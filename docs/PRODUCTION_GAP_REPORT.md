@@ -28,6 +28,13 @@ That runs:
 - `npm run format:check`
 - `npm test`
 - `npm run build`
+- `npm run verify:action`
+
+The packed npm artifact is verified separately with:
+
+```bash
+npm run verify:package
+```
 
 ## Implemented fixture coverage
 
@@ -48,15 +55,19 @@ The GitHub Actions golden fixtures cover:
 
 ## Remaining production hardening
 
-These are outside the v0 plan but worth doing before a public release:
+These are post-v0 hardening items. They are useful, but they are not all runtime
+production blockers:
 
 - Add `SECURITY.md`, `CONTRIBUTING.md`, issue templates, and release notes workflow
 - Add Dependabot and CodeQL configuration
+- Add integration tests against a real temporary GitHub repository
+- Add more examples for reusable workflows and organization-specific permission policies
+
+## Completed post-v0 hardening
+
 - Run install-from-packed-tarball verification in CI
 - Add JSON schema/versioning for machine-consumed reports
 - Add pagination handling beyond the first 100 PR comments
-- Add integration tests against a real temporary GitHub repository
-- Add more examples for reusable workflows and organization-specific permission policies
 
 ## Dependency audit
 

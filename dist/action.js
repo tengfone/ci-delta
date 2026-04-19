@@ -10528,8 +10528,13 @@ var GitHubActionsAdapter = class {
 };
 
 // src/reporters/json.ts
+var reportSchemaVersion = "ci-delta.report.v1";
 function reportToJson(report) {
-  return JSON.stringify(report, null, 2);
+  return JSON.stringify(
+    { schemaVersion: reportSchemaVersion, ...report },
+    null,
+    2
+  );
 }
 
 // src/reporters/markdown.ts
@@ -10670,9 +10675,9 @@ async function upsertStickyComment(params) {
   const fetchImpl = params.fetchImpl ?? fetch;
   const apiUrl = params.apiUrl.replace(/\/$/, "");
   const commentsPath = `/repos/${params.repository.owner}/${params.repository.repo}/issues/${params.issueNumber}/comments`;
-  const comments = await githubRequest({
+  const comments = await listIssueComments({
     apiUrl,
-    path: `${commentsPath}?per_page=100`,
+    path: commentsPath,
     token: params.token,
     fetchImpl
   });
@@ -10698,6 +10703,21 @@ async function upsertStickyComment(params) {
     method: "POST",
     body: { body: params.body }
   });
+}
+async function listIssueComments(params) {
+  const comments = [];
+  let page = 1;
+  while (true) {
+    const pageComments = await githubRequest({
+      ...params,
+      path: `${params.path}?per_page=100&page=${page}`
+    });
+    comments.push(...pageComments);
+    if (pageComments.length < 100) {
+      return comments;
+    }
+    page += 1;
+  }
 }
 async function githubRequest(params) {
   const response = await params.fetchImpl(`${params.apiUrl}${params.path}`, {

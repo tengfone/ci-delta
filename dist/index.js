@@ -8947,8 +8947,13 @@ function capitalize(value) {
 }
 
 // src/reporters/json.ts
+var reportSchemaVersion = "ci-delta.report.v1";
 function reportToJson(report) {
-  return JSON.stringify(report, null, 2);
+  return JSON.stringify(
+    { schemaVersion: reportSchemaVersion, ...report },
+    null,
+    2
+  );
 }
 
 // src/file-sources/local-git.ts
@@ -10651,6 +10656,7 @@ export {
   normalizeWorkflow,
   parseGitHubRepository,
   permissionAccess,
+  reportSchemaVersion,
   reportToJson,
   reportToMarkdown,
   stringList,

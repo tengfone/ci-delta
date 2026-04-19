@@ -18,6 +18,7 @@
   "scripts": {
     "build": "tsup",
     "verify:action": "node scripts/verify-action-bundle.mjs",
+    "verify:package": "node scripts/verify-npm-package.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",

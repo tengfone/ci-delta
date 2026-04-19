@@ -46,6 +46,9 @@ npx ci-delta github-actions --base origin/main --head HEAD --format markdown
 npx ci-delta github-actions --base origin/main --head HEAD --format json
 ```
 
+JSON output includes a top-level `schemaVersion` field. The v0 JSON report
+schema version is `ci-delta.report.v1`.
+
 Useful options:
 
 ```txt
@@ -152,6 +155,19 @@ Recommendation: Avoid checking out pull request head code in privileged workflow
 
 The local CLI uses `git ls-tree` and `git show` for trusted local refs.
 
+## Rule Model
+
+`ci-delta` is a static analyzer for known high-risk CI/CD configuration
+changes. Rules are intentionally evidence-driven: findings cite concrete YAML
+changes such as new triggers, widened permissions, new secret usage, or checkout
+of pull request head code in privileged workflows.
+
+The v0 rule set is maintained in code. It does not execute workflows, emulate
+GitHub Actions runtime behavior, or support custom user-defined rules. Unknown
+new trigger names are still reported as generic workflow trigger additions, but
+they will not receive specialized severity or recommendations until the rule
+set is updated.
+
 ## Data Handling
 
 The GitHub Action reads pull request metadata and workflow file contents from
@@ -173,6 +189,7 @@ npm run typecheck
 npm test
 npm run build
 npm run verify:action
+npm run verify:package
 ```
 
 The production packaging gate is:
@@ -182,6 +199,9 @@ npm run prepack
 ```
 
 `npm run prepack` type-checks, checks formatting, runs tests, rebuilds `dist`, and verifies that `action.yml` points at a standalone Node 24 action bundle.
+
+`npm run verify:package` packs the npm artifact, installs it into a temporary
+project, and verifies both the `ci-delta` binary and package import entrypoint.
 
 Fixtures live in `fixtures/github-actions`. Each fixture has `base`, `head`, `expected.json`, and `expected.md` files and is exercised by the Vitest suite.
 

@@ -13493,8 +13493,13 @@ var GitHubActionsAdapter = class {
 };
 
 // src/reporters/json.ts
+var reportSchemaVersion = "ci-delta.report.v1";
 function reportToJson(report) {
-  return JSON.stringify(report, null, 2);
+  return JSON.stringify(
+    { schemaVersion: reportSchemaVersion, ...report },
+    null,
+    2
+  );
 }
 
 // src/reporters/markdown.ts
