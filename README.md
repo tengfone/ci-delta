@@ -121,6 +121,9 @@ The PR comment uses this marker so updates replace the previous report:
 
 ## Example Report
 
+See a real smoke-test PR and sticky report:
+[tengfone/ci-delta#5](https://github.com/tengfone/ci-delta/pull/5#issuecomment-4275678904).
+
 ```md
 ## CI Delta Report
 
@@ -209,6 +212,26 @@ npm run prepack
 project, and verifies both the `ci-delta` binary and package import entrypoint.
 
 Fixtures live in `fixtures/github-actions`. Each fixture has `base`, `head`, `expected.json`, and `expected.md` files and is exercised by the Vitest suite.
+
+## Release Process
+
+Stable releases are driven by GitHub Releases:
+
+1. Update `package.json` to the next stable semver version and merge to `main`.
+2. Create and publish a GitHub Release whose tag exactly matches the package version, such as `v0.1.2`.
+3. The `Release` workflow verifies the tag, runs the production package gates, publishes the package to npm, and moves the matching major action tag, such as `v0`.
+
+Prereleases are not published automatically yet. Keep `v*` release tags protected with GitHub repository rules so only maintainers can create or move release tags.
+
+Before using automated npm publishing, configure npm Trusted Publishing for this package:
+
+- Publisher: GitHub Actions
+- Organization or user: `tengfone`
+- Repository: `ci-delta`
+- Workflow filename: `release.yml`
+- Environment: leave blank
+
+The release workflow uses GitHub OIDC for npm publishing. Do not store a long-lived npm publish token in repository secrets.
 
 ## Limitations
 

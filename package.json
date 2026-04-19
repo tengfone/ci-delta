@@ -7,6 +7,17 @@
   "bin": {
     "ci-delta": "dist/cli.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tengfone/ci-delta.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tengfone/ci-delta/issues"
+  },
+  "homepage": "https://github.com/tengfone/ci-delta#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20"
   },

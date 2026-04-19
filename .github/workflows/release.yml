@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish-npm:
+    name: Publish npm package
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Verify release version
+        run: node scripts/verify-release-version.mjs "${{ github.event.release.tag_name }}"
+
+      - name: Verify production package
+        run: npm run prepack
+
+      - name: Verify packed npm install
+        run: npm run verify:package
+
+      - name: Ensure npm version is unpublished
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if npm view "ci-delta@${version}" version >/dev/null 2>&1; then
+            echo "ci-delta@${version} is already published on npm."
+            exit 1
+          fi
+
+      - name: Publish to npm
+        run: npm publish
+
+      - name: Move major action tag
+        run: |
+          release_tag="${{ github.event.release.tag_name }}"
+          major_tag="${release_tag%%.*}"
+          release_sha="$(git rev-parse HEAD)"
+
+          git tag --force "${major_tag}" "${release_sha}"
+          git push --force origin "refs/tags/${major_tag}"
