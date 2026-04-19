@@ -46,5 +46,7 @@ export function meetsThreshold(
     return false;
   }
 
-  return findings.some((finding) => severityRank[finding.severity] >= severityRank[threshold]);
+  return findings.some(
+    (finding) => severityRank[finding.severity] >= severityRank[threshold],
+  );
 }

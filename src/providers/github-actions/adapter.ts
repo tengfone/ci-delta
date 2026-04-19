@@ -1,5 +1,9 @@
 import { parseDocument } from "yaml";
-import type { FileSnapshot, Finding, ProviderAdapter } from "../../core/types.js";
+import type {
+  FileSnapshot,
+  Finding,
+  ProviderAdapter,
+} from "../../core/types.js";
 
 export interface GitHubActionsWorkflow {
   path: string;
@@ -18,7 +22,10 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
 
   public readonly displayName = "GitHub Actions";
 
-  public readonly workflowGlobs = [".github/workflows/*.yml", ".github/workflows/*.yaml"];
+  public readonly workflowGlobs = [
+    ".github/workflows/*.yml",
+    ".github/workflows/*.yaml",
+  ];
 
   public async parse(files: FileSnapshot[]): Promise<GitHubActionsSnapshot> {
     const workflows: GitHubActionsWorkflow[] = [];
@@ -35,7 +42,8 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
           category: "config",
           file: file.path,
           evidence: doc.errors.map((err) => err.message),
-          recommendation: "Fix invalid workflow syntax before relying on CI Delta results.",
+          recommendation:
+            "Fix invalid workflow syntax before relying on CI Delta results.",
         });
         continue;
       }
@@ -53,7 +61,10 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
     return { workflows, parseFindings };
   }
 
-  public async diff(base: GitHubActionsSnapshot, head: GitHubActionsSnapshot): Promise<Finding[]> {
+  public async diff(
+    base: GitHubActionsSnapshot,
+    head: GitHubActionsSnapshot,
+  ): Promise<Finding[]> {
     const findings: Finding[] = [];
     findings.push(...base.parseFindings, ...head.parseFindings);
 
@@ -69,7 +80,8 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
           category: "config",
           file: path,
           evidence: [`New workflow file detected: ${path}`],
-          recommendation: "Review new workflow triggers and permissions before merge.",
+          recommendation:
+            "Review new workflow triggers and permissions before merge.",
         });
       }
     }
@@ -83,7 +95,8 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
           category: "config",
           file: path,
           evidence: [`Workflow file removed: ${path}`],
-          recommendation: "Ensure the removal is intentional and does not break required checks.",
+          recommendation:
+            "Ensure the removal is intentional and does not break required checks.",
         });
       }
     }
