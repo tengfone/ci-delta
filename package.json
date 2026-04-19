@@ -33,7 +33,7 @@
     "cd",
     "workflow"
   ],
-  "author": "",
+  "author": "tengfone",
   "license": "MIT",
   "dependencies": {
     "commander": "^12.1.0",

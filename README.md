@@ -152,6 +152,17 @@ Recommendation: Avoid checking out pull request head code in privileged workflow
 
 The local CLI uses `git ls-tree` and `git show` for trusted local refs.
 
+## Data Handling
+
+The GitHub Action reads pull request metadata and workflow file contents from
+the base and head repositories through GitHub APIs. When `comment: true` is
+enabled, it posts or updates one sticky pull request comment containing the CI
+Delta report.
+
+`ci-delta` does not send repository contents, workflow files, pull request data,
+tokens, or generated reports to third-party services. It does not persist data
+outside the current GitHub Actions run.
+
 ## Development
 
 ```bash
