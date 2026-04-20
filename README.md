@@ -5,6 +5,8 @@
 [![npm](https://img.shields.io/npm/v/ci-delta)](https://www.npmjs.com/package/ci-delta)
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-ci--delta-0969da?logo=github)](https://github.com/marketplace/actions/ci-delta)
 
+[GitHub repository](https://github.com/tengfone/ci-delta)
+
 Semantic diff reports for CI/CD config changes.
 
 A YAML diff tells you what text changed.
