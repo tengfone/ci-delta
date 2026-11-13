@@ -1,0 +1,12 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "medium",
+  "findings": [
+    {
+      "id": "image-changed",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml",
+      "job": "build"
+    }
+  ]
+}

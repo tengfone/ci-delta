@@ -1,0 +1,11 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "ci-file-parse-error",
+      "severity": "high",
+      "file": ".gitlab-ci.yml"
+    }
+  ]
+}

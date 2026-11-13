@@ -12,7 +12,7 @@ Semantic diff reports for CI/CD config changes.
 A YAML diff tells you what text changed.
 `ci-delta` tells you what pipeline behavior changed.
 
-Like `terraform plan`, but for GitHub Actions.
+Like `terraform plan`, but for GitHub Actions and GitLab CI.
 
 ## What It Catches
 
@@ -44,6 +44,13 @@ Provider aliases:
 ```bash
 npx ci-delta gha --base origin/main --head HEAD
 npx ci-delta github --base origin/main --head HEAD
+```
+
+GitLab CI:
+
+```bash
+npx ci-delta gitlab-ci --base origin/main --head HEAD
+npx ci-delta gitlab --base origin/main --head HEAD
 ```
 
 Output formats:
@@ -213,7 +220,7 @@ npm run prepack
 `npm run verify:package` packs the npm artifact, installs it into a temporary
 project, and verifies both the `ci-delta` binary and package import entrypoint.
 
-Fixtures live in `fixtures/github-actions`. Each fixture has `base`, `head`, `expected.json`, and `expected.md` files and is exercised by the Vitest suite.
+Fixtures live in `fixtures/github-actions` and `fixtures/gitlab-ci`. Each fixture has `base`, `head`, `expected.json`, and `expected.md` files and is exercised by the Vitest suite.
 
 ## Release Process
 
@@ -237,23 +244,33 @@ The release workflow uses GitHub OIDC for npm publishing. Do not store a long-li
 
 ## Limitations
 
-`ci-delta` is not a workflow runtime emulator. It does not execute workflows, resolve every expression, scan secret values, enforce branch protection, replace CodeQL, or fully expand reusable workflows.
+`ci-delta` is not a pipeline runtime emulator. It does not execute workflows, resolve every expression, scan secret values, enforce branch protection, or replace CodeQL.
 
-The v0 implementation focuses on GitHub Actions workflow files:
+GitHub Actions support reads:
 
 ```txt
 .github/workflows/*.yml
 .github/workflows/*.yaml
 ```
 
-Findings are conservative and evidence-driven. When a rule cannot prove the full runtime behavior, it reports the concrete config delta and recommends human review.
+It does not fully expand reusable workflows.
 
-## Roadmap
-
-The provider interface is intentionally CI/CD-platform neutral. GitLab CI support is planned as a future adapter with a command such as:
+GitLab CI is supported for root `.gitlab-ci.yml` and `.gitlab-ci.yaml`. Local `include:` files are read from the same git ref when that path exists:
 
 ```bash
 npx ci-delta gitlab-ci --base origin/main --head HEAD
 ```
 
-Future GitLab work should cover `.gitlab-ci.yml`, local includes, `workflow:rules`, job rules, variables, protected environment changes, runner tags, images/services, `id_tokens`, deployment gates, and child pipeline triggers.
+That scope reports new or removed CI files, invalid YAML, job or workflow rules that are removed or match more broadly, protected variables, new protected-looking secret references such as `$CI_JOB_TOKEN`, runner tag changes, image and service image changes, new `id_tokens`, and new or removed jobs. Each finding cites the file and the YAML it used.
+
+GitLab CI support does not fetch remote includes, expand child pipelines, expand `extends` or `!reference`, or fully evaluate `rules:` expressions. A newly added remote, project, template, or component include, or a local include whose path is missing, is reported as not expanded. When a rule cannot prove the runtime behavior, it reports the concrete config delta and recommends human review.
+
+## Roadmap
+
+The provider interface is CI/CD-platform neutral. GitLab CI is supported for the scope above:
+
+```bash
+npx ci-delta gitlab-ci --base origin/main --head HEAD
+```
+
+Later GitLab work can cover protected environment changes, deployment gates, include `rules:`, `extends` / `!reference` expansion, and child pipeline triggers. Remote includes and full rule evaluation stay out of scope until they can be reported without pretending the runtime was evaluated.

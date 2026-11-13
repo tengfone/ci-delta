@@ -54,4 +54,8 @@ export interface ProviderAdapter<Snapshot> {
   workflowGlobs: string[];
   parse(files: FileSnapshot[]): Promise<Snapshot>;
   diff(base: Snapshot, head: Snapshot): Promise<Finding[]>;
+  expandFiles?(
+    source: FileSource,
+    files: FileSnapshot[],
+  ): Promise<FileSnapshot[]>;
 }

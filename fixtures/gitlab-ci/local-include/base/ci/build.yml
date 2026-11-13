@@ -1,0 +1,4 @@
+build:
+  image: golang:1.22
+  script:
+    - go test ./...

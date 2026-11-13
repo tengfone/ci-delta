@@ -15,6 +15,18 @@ describe("reportToMarkdown", () => {
     expect(markdown).toContain("## CI Delta Report");
     expect(markdown).toContain("No GitHub Actions workflow changes detected.");
   });
+
+  it("renders a GitLab no-change message", () => {
+    const report = buildReport({
+      provider: "gitlab-ci",
+      changedFiles: [],
+      findings: [],
+    });
+
+    expect(reportToMarkdown(report)).toContain(
+      "No GitLab CI config changes detected.",
+    );
+  });
 });
 
 describe("reportToJson", () => {

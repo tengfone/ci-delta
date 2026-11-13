@@ -1,0 +1,6 @@
+include:
+  - local: ci/build.yml
+
+test:
+  script:
+    - echo root

@@ -1,0 +1,7 @@
+include:
+  - remote: https://example.com/ci/templates.yml
+  - local: ci/missing.yml
+
+build:
+  script:
+    - echo build

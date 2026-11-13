@@ -1,0 +1,4 @@
+deploy:
+  image: node:20
+  script:
+    - echo deploy

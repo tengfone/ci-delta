@@ -1,0 +1,4 @@
+# Comment-only edit. Pipeline behavior is unchanged.
+build:
+  script:
+    - echo build

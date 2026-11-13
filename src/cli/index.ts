@@ -4,13 +4,13 @@ import path from "node:path";
 import { Command } from "commander";
 import { compareSources } from "../core/engine.js";
 import { meetsThreshold } from "../core/severity.js";
-import type { Severity } from "../core/types.js";
+import type { ProviderAdapter, Severity } from "../core/types.js";
 import { LocalGitFileSource } from "../file-sources/local-git.js";
 import { GitHubActionsAdapter } from "../providers/github-actions/adapter.js";
+import { GitLabCiAdapter } from "../providers/gitlab-ci/adapter.js";
 import { reportToJson } from "../reporters/json.js";
 import { reportToMarkdown } from "../reporters/markdown.js";
-
-const providerAliases = new Set(["github-actions", "gha", "github"]);
+import { resolveProviderId } from "./providers.js";
 
 async function run(): Promise<void> {
   const program = new Command();
@@ -18,7 +18,10 @@ async function run(): Promise<void> {
   program
     .name("ci-delta")
     .description("Semantic diff reports for CI/CD config changes")
-    .argument("<provider>", "Provider name (github-actions, gha, github)")
+    .argument(
+      "<provider>",
+      "Provider name (github-actions, gha, github, gitlab-ci, gitlab)",
+    )
     .requiredOption("--base <ref>", "Base git ref")
     .requiredOption("--head <ref>", "Head git ref")
     .option("--format <format>", "markdown or json", "markdown")
@@ -31,9 +34,11 @@ async function run(): Promise<void> {
 
   program.parse(process.argv);
 
-  const providerInput = program.args[0];
-  if (!providerAliases.has(providerInput)) {
+  const providerInput = program.args[0] ?? "";
+  const providerId = resolveProviderId(providerInput);
+  if (!providerId) {
     program.error(`Unsupported provider: ${providerInput}`, { exitCode: 2 });
+    return;
   }
 
   const options = program.opts<{
@@ -48,9 +53,35 @@ async function run(): Promise<void> {
 
   if (!["markdown", "json"].includes(options.format)) {
     program.error(`Invalid --format: ${options.format}`, { exitCode: 2 });
+    return;
   }
 
-  const adapter = new GitHubActionsAdapter();
+  switch (providerId) {
+    case "github-actions":
+      await execute(new GitHubActionsAdapter(), options);
+      return;
+    case "gitlab-ci":
+      await execute(new GitLabCiAdapter(), options);
+      return;
+    default: {
+      const unsupported: never = providerId;
+      throw new Error(`Unsupported provider: ${String(unsupported)}`);
+    }
+  }
+}
+
+async function execute<Snapshot>(
+  adapter: ProviderAdapter<Snapshot>,
+  options: {
+    base: string;
+    head: string;
+    format: "markdown" | "json";
+    output?: string;
+    failOn: Severity | "none";
+    repoRoot: string;
+    include: string[];
+  },
+): Promise<void> {
   const globs = [...adapter.workflowGlobs, ...options.include];
 
   const baseSource = new LocalGitFileSource(

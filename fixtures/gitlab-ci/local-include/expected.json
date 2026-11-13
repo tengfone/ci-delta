@@ -1,0 +1,12 @@
+{
+  "changedFiles": ["ci/build.yml"],
+  "maxSeverity": "medium",
+  "findings": [
+    {
+      "id": "image-changed",
+      "severity": "medium",
+      "file": "ci/build.yml",
+      "job": "build"
+    }
+  ]
+}

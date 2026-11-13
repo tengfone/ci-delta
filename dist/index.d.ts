@@ -37,6 +37,7 @@ interface ProviderAdapter<Snapshot> {
     workflowGlobs: string[];
     parse(files: FileSnapshot[]): Promise<Snapshot>;
     diff(base: Snapshot, head: Snapshot): Promise<Finding[]>;
+    expandFiles?(source: FileSource, files: FileSnapshot[]): Promise<FileSnapshot[]>;
 }
 
 declare function buildReport(params: {
@@ -142,6 +143,81 @@ declare class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnaps
     diff(base: GitHubActionsSnapshot, head: GitHubActionsSnapshot): Promise<Finding[]>;
 }
 
+type IncludeKind = "local" | "remote" | "project" | "template" | "component" | "unknown";
+interface GitLabInclude {
+    kind: IncludeKind;
+    localPath?: string;
+    expanded: boolean;
+    locator: string;
+}
+interface GitLabRule {
+    ifClause?: string;
+    when?: string;
+    changes: string[];
+    hasChanges: boolean;
+    exists: string[];
+    unconditionalPositive: boolean;
+    restrictive: boolean;
+}
+interface GitLabVariable {
+    name: string;
+    protected: boolean;
+    valueText?: string;
+}
+interface GitLabService {
+    key: string;
+    image?: string;
+    label: string;
+}
+interface GitLabScript {
+    location: string;
+    text: string;
+}
+interface GitLabIdToken {
+    name: string;
+    aud?: string;
+}
+interface GitLabJob {
+    id: string;
+    image?: string;
+    services: GitLabService[];
+    tags?: string[];
+    rules: GitLabRule[];
+    variables: GitLabVariable[];
+    idTokens: GitLabIdToken[];
+    scripts: GitLabScript[];
+}
+interface GitLabCiFile {
+    path: string;
+    raw: string;
+    valid: boolean;
+    jobs: Record<string, GitLabJob>;
+    workflowRules: GitLabRule[];
+    variables: GitLabVariable[];
+    defaultImage?: string;
+    defaultServices: GitLabService[];
+    defaultTags?: string[];
+    defaultScripts: GitLabScript[];
+    defaultIdTokens: GitLabIdToken[];
+    rootImage?: string;
+    rootServices: GitLabService[];
+    rootScripts: GitLabScript[];
+    includes: GitLabInclude[];
+}
+
+interface GitLabCiSnapshot {
+    files: GitLabCiFile[];
+    parseFindings: Finding[];
+}
+declare class GitLabCiAdapter implements ProviderAdapter<GitLabCiSnapshot> {
+    readonly id = "gitlab-ci";
+    readonly displayName = "GitLab CI";
+    readonly workflowGlobs: string[];
+    expandFiles(source: FileSource, files: FileSnapshot[]): Promise<FileSnapshot[]>;
+    parse(files: FileSnapshot[]): Promise<GitLabCiSnapshot>;
+    diff(base: GitLabCiSnapshot, head: GitLabCiSnapshot): Promise<Finding[]>;
+}
+
 declare function reportToMarkdown(report: Report): string;
 
 declare const reportSchemaVersion = "ci-delta.report.v1";
@@ -182,4 +258,4 @@ declare class GitHubApiFileSource implements FileSource {
 }
 declare function parseGitHubRepository(fullName: string): GitHubRepositoryRef;
 
-export { type CompareSourcesParams, type FileSnapshot, type FileSource, type Finding, type FindingCategory, GitHubActionsAdapter, type GitHubActionsSnapshot, type GitHubActionsWorkflow, GitHubApiFileSource, type GitHubApiFileSourceOptions, type GitHubRepositoryRef, type JsonObject, LocalGitFileSource, type NormalizedJob, type NormalizedPermissions, type NormalizedService, type NormalizedStep, type NormalizedTrigger, type NormalizedTriggers, type PermissionAccess, type PermissionMode, type ProviderAdapter, type Report, type Severity, asRecord, buildReport, changedFilePaths, compareSeverity, compareSources, explicitWriteScopes, getSummary, hasWritePermission, maxSeverity, meetsThreshold, normalizeJobs, normalizePermissions, normalizeTriggers, normalizeWorkflow, parseGitHubRepository, permissionAccess, reportSchemaVersion, reportToJson, reportToMarkdown, stringList, stringValue };
+export { type CompareSourcesParams, type FileSnapshot, type FileSource, type Finding, type FindingCategory, GitHubActionsAdapter, type GitHubActionsSnapshot, type GitHubActionsWorkflow, GitHubApiFileSource, type GitHubApiFileSourceOptions, type GitHubRepositoryRef, GitLabCiAdapter, type GitLabCiFile, type GitLabCiSnapshot, type JsonObject, LocalGitFileSource, type NormalizedJob, type NormalizedPermissions, type NormalizedService, type NormalizedStep, type NormalizedTrigger, type NormalizedTriggers, type PermissionAccess, type PermissionMode, type ProviderAdapter, type Report, type Severity, asRecord, buildReport, changedFilePaths, compareSeverity, compareSources, explicitWriteScopes, getSummary, hasWritePermission, maxSeverity, meetsThreshold, normalizeJobs, normalizePermissions, normalizeTriggers, normalizeWorkflow, parseGitHubRepository, permissionAccess, reportSchemaVersion, reportToJson, reportToMarkdown, stringList, stringValue };

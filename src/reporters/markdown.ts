@@ -19,7 +19,7 @@ export function reportToMarkdown(report: Report): string {
   );
 
   if (report.changedFiles.length === 0) {
-    lines.push("No GitHub Actions workflow changes detected.");
+    lines.push(emptyChangeMessage(report.provider));
     return lines.join("\n");
   }
 
@@ -65,4 +65,12 @@ export function reportToMarkdown(report: Report): string {
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function emptyChangeMessage(provider: string): string {
+  if (provider === "gitlab-ci") {
+    return "No GitLab CI config changes detected.";
+  }
+
+  return "No GitHub Actions workflow changes detected.";
 }

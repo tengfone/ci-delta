@@ -1,0 +1,7 @@
+deploy:
+  image: node:20
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://example.com
+  script:
+    - echo deploy

@@ -1,0 +1,16 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "medium",
+  "findings": [
+    {
+      "id": "include-not-expanded",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml"
+    },
+    {
+      "id": "include-not-expanded",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml"
+    }
+  ]
+}

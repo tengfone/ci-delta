@@ -24,8 +24,8 @@ export async function compareSources<Snapshot>({
   headRef,
 }: CompareSourcesParams<Snapshot>): Promise<Report> {
   const [baseFiles, headFiles] = await Promise.all([
-    baseSource.listFiles(globs),
-    headSource.listFiles(globs),
+    loadProviderFiles(provider, baseSource, globs),
+    loadProviderFiles(provider, headSource, globs),
   ]);
 
   const [baseSnapshot, headSnapshot] = await Promise.all([
@@ -71,4 +71,17 @@ export function changedFilePaths(
 
 function toPathMap(files: FileSnapshot[]): Map<string, FileSnapshot> {
   return new Map(files.map((file) => [file.path, file]));
+}
+
+async function loadProviderFiles<Snapshot>(
+  provider: ProviderAdapter<Snapshot>,
+  source: FileSource,
+  globs: string[],
+): Promise<FileSnapshot[]> {
+  const files = await source.listFiles(globs);
+  if (!provider.expandFiles) {
+    return files;
+  }
+
+  return provider.expandFiles(source, files);
 }

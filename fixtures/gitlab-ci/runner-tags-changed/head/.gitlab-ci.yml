@@ -1,0 +1,7 @@
+build:
+  image: node:20
+  tags:
+    - docker
+    - protected
+  script:
+    - npm test

@@ -7710,8 +7710,8 @@ async function compareSources({
   headRef
 }) {
   const [baseFiles, headFiles] = await Promise.all([
-    baseSource.listFiles(globs),
-    headSource.listFiles(globs)
+    loadProviderFiles(provider, baseSource, globs),
+    loadProviderFiles(provider, headSource, globs)
   ]);
   const [baseSnapshot, headSnapshot] = await Promise.all([
     provider.parse(baseFiles),
@@ -7745,6 +7745,13 @@ function changedFilePaths(baseFiles, headFiles) {
 }
 function toPathMap(files) {
   return new Map(files.map((file) => [file.path, file]));
+}
+async function loadProviderFiles(provider, source, globs) {
+  const files = await source.listFiles(globs);
+  if (!provider.expandFiles) {
+    return files;
+  }
+  return provider.expandFiles(source, files);
 }
 
 // node_modules/minimatch/dist/esm/index.js
@@ -10644,7 +10651,7 @@ function reportToMarkdown(report) {
     ""
   );
   if (report.changedFiles.length === 0) {
-    lines.push("No GitHub Actions workflow changes detected.");
+    lines.push(emptyChangeMessage(report.provider));
     return lines.join("\n");
   }
   lines.push("Changed workflow files:");
@@ -10681,6 +10688,12 @@ function reportToMarkdown(report) {
 }
 function capitalize(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+function emptyChangeMessage(provider) {
+  if (provider === "gitlab-ci") {
+    return "No GitLab CI config changes detected.";
+  }
+  return "No GitHub Actions workflow changes detected.";
 }
 
 // src/action/index.ts

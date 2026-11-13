@@ -3,68 +3,99 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { minimatch } from "minimatch";
 import { compareSources } from "../src/core/engine.js";
-import type { FileSnapshot, FileSource, Severity } from "../src/core/types.js";
+import type {
+  FileSnapshot,
+  FileSource,
+  ProviderAdapter,
+  Severity,
+} from "../src/core/types.js";
 import { GitHubActionsAdapter } from "../src/providers/github-actions/adapter.js";
+import { GitLabCiAdapter } from "../src/providers/gitlab-ci/adapter.js";
 import { reportToMarkdown } from "../src/reporters/markdown.js";
+
+interface ExpectedFinding {
+  id: string;
+  severity: Severity;
+  file?: string;
+  job?: string;
+}
 
 interface ExpectedFixture {
   changedFiles: string[];
   maxSeverity: Severity | "none";
-  findings: Array<{
-    id: string;
-    severity: Severity;
-    job?: string;
-  }>;
+  findings: ExpectedFinding[];
 }
 
-const fixturesRoot = path.join(process.cwd(), "fixtures", "github-actions");
+function registerFixtureSuite<Snapshot>(
+  name: string,
+  root: string,
+  createAdapter: () => ProviderAdapter<Snapshot>,
+): void {
+  describe(name, async () => {
+    const fixtureNames = (await fs.readdir(root, { withFileTypes: true }))
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
 
-describe("GitHub Actions golden fixtures", async () => {
-  const fixtureNames = (await fs.readdir(fixturesRoot, { withFileTypes: true }))
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
+    for (const fixtureName of fixtureNames) {
+      it(`matches ${fixtureName}`, async () => {
+        const fixtureRoot = path.join(root, fixtureName);
+        const expected = JSON.parse(
+          await fs.readFile(path.join(fixtureRoot, "expected.json"), "utf8"),
+        ) as ExpectedFixture;
+        const expectedMarkdown = await fs.readFile(
+          path.join(fixtureRoot, "expected.md"),
+          "utf8",
+        );
 
-  for (const fixtureName of fixtureNames) {
-    it(`matches ${fixtureName}`, async () => {
-      const fixtureRoot = path.join(fixturesRoot, fixtureName);
-      const expected = JSON.parse(
-        await fs.readFile(path.join(fixtureRoot, "expected.json"), "utf8"),
-      ) as ExpectedFixture;
-      const expectedMarkdown = await fs.readFile(
-        path.join(fixtureRoot, "expected.md"),
-        "utf8",
-      );
+        const adapter = createAdapter();
+        const report = await compareSources({
+          provider: adapter,
+          baseSource: new FixtureFileSource(path.join(fixtureRoot, "base")),
+          headSource: new FixtureFileSource(path.join(fixtureRoot, "head")),
+          baseRef: "base",
+          headRef: "head",
+        });
 
-      const adapter = new GitHubActionsAdapter();
-      const report = await compareSources({
-        provider: adapter,
-        baseSource: new FixtureFileSource(path.join(fixtureRoot, "base")),
-        headSource: new FixtureFileSource(path.join(fixtureRoot, "head")),
-        baseRef: "base",
-        headRef: "head",
+        expect(report.changedFiles).toEqual(expected.changedFiles);
+        expect(report.maxSeverity).toBe(expected.maxSeverity);
+        expect(
+          report.findings.map((finding, index) => {
+            const expectedFinding = expected.findings[index];
+            return {
+              id: finding.id,
+              severity: finding.severity,
+              ...(expectedFinding && "file" in expectedFinding
+                ? { file: finding.file }
+                : {}),
+              ...(finding.job ? { job: finding.job } : {}),
+            };
+          }),
+        ).toEqual(expected.findings);
+
+        const markdown = reportToMarkdown(report);
+        for (const line of expectedMarkdown
+          .split("\n")
+          .map((entry) => entry.trim())
+          .filter(Boolean)) {
+          expect(markdown).toContain(line);
+        }
       });
+    }
+  });
+}
 
-      expect(report.changedFiles).toEqual(expected.changedFiles);
-      expect(report.maxSeverity).toBe(expected.maxSeverity);
-      expect(
-        report.findings.map((finding) => ({
-          id: finding.id,
-          severity: finding.severity,
-          ...(finding.job ? { job: finding.job } : {}),
-        })),
-      ).toEqual(expected.findings);
+registerFixtureSuite(
+  "GitHub Actions golden fixtures",
+  path.join(process.cwd(), "fixtures", "github-actions"),
+  () => new GitHubActionsAdapter(),
+);
 
-      const markdown = reportToMarkdown(report);
-      for (const line of expectedMarkdown
-        .split("\n")
-        .map((entry) => entry.trim())
-        .filter(Boolean)) {
-        expect(markdown).toContain(line);
-      }
-    });
-  }
-});
+registerFixtureSuite(
+  "GitLab CI golden fixtures",
+  path.join(process.cwd(), "fixtures", "gitlab-ci"),
+  () => new GitLabCiAdapter(),
+);
 
 class FixtureFileSource implements FileSource {
   public constructor(private readonly root: string) {}

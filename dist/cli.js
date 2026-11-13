@@ -503,7 +503,7 @@ var require_help = __commonJS({
           }
           return term;
         }
-        function formatList2(textArray) {
+        function formatList3(textArray) {
           return textArray.join("\n").replace(/^/gm, " ".repeat(itemIndentWidth));
         }
         let output = [`Usage: ${helper.commandUsage(cmd)}`, ""];
@@ -521,7 +521,7 @@ var require_help = __commonJS({
           );
         });
         if (argumentList.length > 0) {
-          output = output.concat(["Arguments:", formatList2(argumentList), ""]);
+          output = output.concat(["Arguments:", formatList3(argumentList), ""]);
         }
         const optionList = helper.visibleOptions(cmd).map((option) => {
           return formatItem(
@@ -530,7 +530,7 @@ var require_help = __commonJS({
           );
         });
         if (optionList.length > 0) {
-          output = output.concat(["Options:", formatList2(optionList), ""]);
+          output = output.concat(["Options:", formatList3(optionList), ""]);
         }
         if (this.showGlobalOptions) {
           const globalOptionList = helper.visibleGlobalOptions(cmd).map((option) => {
@@ -542,7 +542,7 @@ var require_help = __commonJS({
           if (globalOptionList.length > 0) {
             output = output.concat([
               "Global Options:",
-              formatList2(globalOptionList),
+              formatList3(globalOptionList),
               ""
             ]);
           }
@@ -554,7 +554,7 @@ var require_help = __commonJS({
           );
         });
         if (commandList.length > 0) {
-          output = output.concat(["Commands:", formatList2(commandList), ""]);
+          output = output.concat(["Commands:", formatList3(commandList), ""]);
         }
         return output.join("\n");
       }
@@ -971,7 +971,7 @@ var require_command = __commonJS({
     "use strict";
     var EventEmitter = __require("events").EventEmitter;
     var childProcess = __require("child_process");
-    var path3 = __require("path");
+    var path4 = __require("path");
     var fs2 = __require("fs");
     var process2 = __require("process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
@@ -1904,9 +1904,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path3.resolve(baseDir, baseName);
+          const localBin = path4.resolve(baseDir, baseName);
           if (fs2.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path3.extname(baseName))) return void 0;
+          if (sourceExt.includes(path4.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
             (ext2) => fs2.existsSync(`${localBin}${ext2}`)
           );
@@ -1924,17 +1924,17 @@ Expecting one of '${allowedValues.join("', '")}'`);
           } catch (err) {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path3.resolve(
-            path3.dirname(resolvedScriptPath),
+          executableDir = path4.resolve(
+            path4.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path3.basename(
+            const legacyName = path4.basename(
               this._scriptPath,
-              path3.extname(this._scriptPath)
+              path4.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -1945,7 +1945,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path3.extname(executableFile));
+        launchWithNode = sourceExt.includes(path4.extname(executableFile));
         let proc;
         if (process2.platform !== "win32") {
           if (launchWithNode) {
@@ -2785,7 +2785,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path3.basename(filename, path3.extname(filename));
+        this._name = path4.basename(filename, path4.extname(filename));
         return this;
       }
       /**
@@ -2799,9 +2799,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path4) {
-        if (path4 === void 0) return this._executableDir;
-        this._executableDir = path4;
+      executableDir(path5) {
+        if (path5 === void 0) return this._executableDir;
+        this._executableDir = path5;
         return this;
       }
       /**
@@ -3410,17 +3410,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path3) {
-      const ctrl = callVisitor(key, node, visitor, path3);
+    function visit_(key, node, visitor, path4) {
+      const ctrl = callVisitor(key, node, visitor, path4);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path3, ctrl);
-        return visit_(key, ctrl, visitor, path3);
+        replaceNode(key, path4, ctrl);
+        return visit_(key, ctrl, visitor, path4);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path3 = Object.freeze(path3.concat(node));
+          path4 = Object.freeze(path4.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path3);
+            const ci = visit_(i, node.items[i], visitor, path4);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -3431,13 +3431,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path3 = Object.freeze(path3.concat(node));
-          const ck = visit_("key", node.key, visitor, path3);
+          path4 = Object.freeze(path4.concat(node));
+          const ck = visit_("key", node.key, visitor, path4);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path3);
+          const cv = visit_("value", node.value, visitor, path4);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3458,17 +3458,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path3) {
-      const ctrl = await callVisitor(key, node, visitor, path3);
+    async function visitAsync_(key, node, visitor, path4) {
+      const ctrl = await callVisitor(key, node, visitor, path4);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path3, ctrl);
-        return visitAsync_(key, ctrl, visitor, path3);
+        replaceNode(key, path4, ctrl);
+        return visitAsync_(key, ctrl, visitor, path4);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path3 = Object.freeze(path3.concat(node));
+          path4 = Object.freeze(path4.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path3);
+            const ci = await visitAsync_(i, node.items[i], visitor, path4);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -3479,13 +3479,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path3 = Object.freeze(path3.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path3);
+          path4 = Object.freeze(path4.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path4);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path3);
+          const cv = await visitAsync_("value", node.value, visitor, path4);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3512,23 +3512,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path3) {
+    function callVisitor(key, node, visitor, path4) {
       if (typeof visitor === "function")
-        return visitor(key, node, path3);
+        return visitor(key, node, path4);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path3);
+        return visitor.Map?.(key, node, path4);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path3);
+        return visitor.Seq?.(key, node, path4);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path3);
+        return visitor.Pair?.(key, node, path4);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path3);
+        return visitor.Scalar?.(key, node, path4);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path3);
+        return visitor.Alias?.(key, node, path4);
       return void 0;
     }
-    function replaceNode(key, path3, node) {
-      const parent = path3[path3.length - 1];
+    function replaceNode(key, path4, node) {
+      const parent = path4[path4.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -4136,10 +4136,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path3, value) {
+    function collectionFromPath(schema, path4, value) {
       let v = value;
-      for (let i = path3.length - 1; i >= 0; --i) {
-        const k = path3[i];
+      for (let i = path4.length - 1; i >= 0; --i) {
+        const k = path4[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -4158,7 +4158,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path3) => path3 == null || typeof path3 === "object" && !!path3[Symbol.iterator]().next().done;
+    var isEmptyPath = (path4) => path4 == null || typeof path4 === "object" && !!path4[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -4188,11 +4188,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path3, value) {
-        if (isEmptyPath(path3))
+      addIn(path4, value) {
+        if (isEmptyPath(path4))
           this.add(value);
         else {
-          const [key, ...rest] = path3;
+          const [key, ...rest] = path4;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -4206,8 +4206,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path3) {
-        const [key, ...rest] = path3;
+      deleteIn(path4) {
+        const [key, ...rest] = path4;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -4221,8 +4221,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path3, keepScalar) {
-        const [key, ...rest] = path3;
+      getIn(path4, keepScalar) {
+        const [key, ...rest] = path4;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -4240,8 +4240,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path3) {
-        const [key, ...rest] = path3;
+      hasIn(path4) {
+        const [key, ...rest] = path4;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -4251,8 +4251,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path3, value) {
-        const [key, ...rest] = path3;
+      setIn(path4, value) {
+        const [key, ...rest] = path4;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -6764,9 +6764,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path3, value) {
+      addIn(path4, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path3, value);
+          this.contents.addIn(path4, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -6841,14 +6841,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path3) {
-        if (Collection.isEmptyPath(path3)) {
+      deleteIn(path4) {
+        if (Collection.isEmptyPath(path4)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path3) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path4) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -6863,10 +6863,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path3, keepScalar) {
-        if (Collection.isEmptyPath(path3))
+      getIn(path4, keepScalar) {
+        if (Collection.isEmptyPath(path4))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path3, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path4, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -6877,10 +6877,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path3) {
-        if (Collection.isEmptyPath(path3))
+      hasIn(path4) {
+        if (Collection.isEmptyPath(path4))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path3) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path4) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -6897,13 +6897,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path3, value) {
-        if (Collection.isEmptyPath(path3)) {
+      setIn(path4, value) {
+        if (Collection.isEmptyPath(path4)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path3), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path4), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path3, value);
+          this.contents.setIn(path4, value);
         }
       }
       /**
@@ -8860,9 +8860,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path3) => {
+    visit.itemAtPath = (cst, path4) => {
       let item = cst;
-      for (const [field, index] of path3) {
+      for (const [field, index] of path4) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -8871,23 +8871,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path3) => {
-      const parent = visit.itemAtPath(cst, path3.slice(0, -1));
-      const field = path3[path3.length - 1][0];
+    visit.parentCollection = (cst, path4) => {
+      const parent = visit.itemAtPath(cst, path4.slice(0, -1));
+      const field = path4[path4.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path3, item, visitor) {
-      let ctrl = visitor(item, path3);
+    function _visit(path4, item, visitor) {
+      let ctrl = visitor(item, path4);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path3.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path4.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -8898,10 +8898,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path3);
+            ctrl = ctrl(item, path4);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path3) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path4) : ctrl;
     }
     exports.visit = visit;
   }
@@ -10516,7 +10516,7 @@ var require_public_api = __commonJS({
         return docs;
       return Object.assign([], { empty: true }, composer$1.streamInfo());
     }
-    function parseDocument2(source, options = {}) {
+    function parseDocument3(source, options = {}) {
       const { lineCounter: lineCounter2, prettyErrors } = parseOptions(options);
       const parser$1 = new parser.Parser(lineCounter2?.addNewLine);
       const composer$1 = new composer.Composer(options);
@@ -10542,7 +10542,7 @@ var require_public_api = __commonJS({
       } else if (options === void 0 && reviver && typeof reviver === "object") {
         options = reviver;
       }
-      const doc = parseDocument2(src, options);
+      const doc = parseDocument3(src, options);
       if (!doc)
         return null;
       doc.warnings.forEach((warning) => log.warn(doc.options.logLevel, warning));
@@ -10578,7 +10578,7 @@ var require_public_api = __commonJS({
     }
     exports.parse = parse;
     exports.parseAllDocuments = parseAllDocuments;
-    exports.parseDocument = parseDocument2;
+    exports.parseDocument = parseDocument3;
     exports.stringify = stringify;
   }
 });
@@ -10637,7 +10637,7 @@ var require_dist = __commonJS({
 
 // src/cli/index.ts
 import { promises as fs } from "fs";
-import path2 from "path";
+import path3 from "path";
 
 // node_modules/commander/esm.mjs
 var import_index = __toESM(require_commander(), 1);
@@ -10729,8 +10729,8 @@ async function compareSources({
   headRef
 }) {
   const [baseFiles, headFiles] = await Promise.all([
-    baseSource.listFiles(globs),
-    headSource.listFiles(globs)
+    loadProviderFiles(provider, baseSource, globs),
+    loadProviderFiles(provider, headSource, globs)
   ]);
   const [baseSnapshot, headSnapshot] = await Promise.all([
     provider.parse(baseFiles),
@@ -10749,21 +10749,28 @@ function changedFilePaths(baseFiles, headFiles) {
   const paths = /* @__PURE__ */ new Set();
   const baseByPath = toPathMap(baseFiles);
   const headByPath = toPathMap(headFiles);
-  for (const path3 of /* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])) {
-    const base = baseByPath.get(path3);
-    const head = headByPath.get(path3);
+  for (const path4 of /* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])) {
+    const base = baseByPath.get(path4);
+    const head = headByPath.get(path4);
     if (!base || !head) {
-      paths.add(path3);
+      paths.add(path4);
       continue;
     }
     if (base.content !== head.content || base.sha !== head.sha) {
-      paths.add(path3);
+      paths.add(path4);
     }
   }
   return [...paths].sort();
 }
 function toPathMap(files) {
   return new Map(files.map((file) => [file.path, file]));
+}
+async function loadProviderFiles(provider, source, globs) {
+  const files = await source.listFiles(globs);
+  if (!provider.expandFiles) {
+    return files;
+  }
+  return provider.expandFiles(source, files);
 }
 
 // src/file-sources/local-git.ts
@@ -12320,24 +12327,24 @@ var LocalGitFileSource = class {
         cwd: this.repoRoot
       }
     );
-    const files = stdout.split("\n").map((line) => line.trim()).filter(Boolean).filter((path3) => globs.some((glob) => minimatch(path3, glob)));
-    return Promise.all(files.map(async (path3) => this.readFile(path3))).then(
+    const files = stdout.split("\n").map((line) => line.trim()).filter(Boolean).filter((path4) => globs.some((glob) => minimatch(path4, glob)));
+    return Promise.all(files.map(async (path4) => this.readFile(path4))).then(
       (snapshots) => snapshots.filter(
         (snapshot) => snapshot !== null
       )
     );
   }
-  async readFile(path3) {
+  async readFile(path4) {
     try {
       const { stdout } = await execFileAsync(
         "git",
-        ["show", `${this.ref}:${path3}`],
+        ["show", `${this.ref}:${path4}`],
         {
           cwd: this.repoRoot
         }
       );
       return {
-        path: path3,
+        path: path4,
         content: stdout
       };
     } catch {
@@ -12350,10 +12357,10 @@ var LocalGitFileSource = class {
 var import_yaml = __toESM(require_dist(), 1);
 
 // src/providers/github-actions/normalize.ts
-function normalizeWorkflow(path3, raw, parsed) {
+function normalizeWorkflow(path4, raw, parsed) {
   const root = asRecord(parsed) ?? {};
   return {
-    path: path3,
+    path: path4,
     raw,
     parsed: root,
     name: stringValue(root.name),
@@ -12580,9 +12587,9 @@ function diffWorkflows(baseWorkflows, headWorkflows) {
   const paths = [
     .../* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])
   ].sort();
-  for (const path3 of paths) {
-    const base = baseByPath.get(path3);
-    const head = headByPath.get(path3);
+  for (const path4 of paths) {
+    const base = baseByPath.get(path4);
+    const head = headByPath.get(path4);
     if (!head && base) {
       findings.push(workflowRemovedFinding(base));
       continue;
@@ -13582,6 +13589,979 @@ var GitHubActionsAdapter = class {
   }
 };
 
+// src/providers/gitlab-ci/normalize.ts
+var import_yaml2 = __toESM(require_dist(), 1);
+import path2 from "path";
+var globalKeys = /* @__PURE__ */ new Set([
+  "default",
+  "include",
+  "stages",
+  "variables",
+  "workflow",
+  "spec",
+  "image",
+  "services",
+  "before_script",
+  "after_script",
+  "cache",
+  "types"
+]);
+var scriptKeys = ["before_script", "script", "after_script"];
+function parseYamlRoot(content) {
+  const doc = (0, import_yaml2.parseDocument)(content);
+  if (doc.errors.length > 0) {
+    return {
+      root: null,
+      errors: doc.errors.map((error) => error.message)
+    };
+  }
+  return { root: asRecord2(doc.toJSON()) ?? {}, errors: [] };
+}
+function localIncludePaths(content) {
+  const parsed = parseYamlRoot(content);
+  if (!parsed.root) {
+    return [];
+  }
+  return extractIncludes(parsed.root, /* @__PURE__ */ new Set()).map((include) => include.localPath).filter((includePath) => Boolean(includePath));
+}
+function normalizeCiFile(filePath, raw, root, available) {
+  const defaults2 = asRecord2(root.default) ?? {};
+  const workflow = asRecord2(root.workflow) ?? {};
+  return {
+    path: filePath,
+    raw,
+    valid: true,
+    jobs: normalizeJobs2(root),
+    workflowRules: normalizeRules(workflow.rules),
+    variables: normalizeVariables(root.variables),
+    defaultImage: imageRef(defaults2.image),
+    defaultServices: normalizeServices2(defaults2.services),
+    defaultTags: tagsRef(defaults2.tags),
+    defaultScripts: collectScripts(defaults2, "default "),
+    defaultIdTokens: normalizeIdTokens(defaults2.id_tokens),
+    rootImage: imageRef(root.image),
+    rootServices: normalizeServices2(root.services),
+    rootScripts: collectScripts(root, ""),
+    includes: extractIncludes(root, available)
+  };
+}
+function invalidCiFile(filePath, raw) {
+  return {
+    path: filePath,
+    raw,
+    valid: false,
+    jobs: {},
+    workflowRules: [],
+    variables: [],
+    defaultServices: [],
+    defaultScripts: [],
+    defaultIdTokens: [],
+    rootServices: [],
+    rootScripts: [],
+    includes: []
+  };
+}
+function normalizeRepoPath(input) {
+  const trimmed = input.trim().replace(/\\/g, "/");
+  if (!trimmed || trimmed.includes("\0")) {
+    return null;
+  }
+  const normalized = path2.posix.normalize(trimmed.replace(/^\/+/, ""));
+  if (normalized === "." || normalized === ".." || normalized.startsWith("../") || normalized.startsWith("/")) {
+    return null;
+  }
+  return normalized;
+}
+function renderRule(rule) {
+  const parts = [];
+  if (rule.ifClause) {
+    parts.push(`if: ${rule.ifClause}`);
+  }
+  if (rule.hasChanges) {
+    parts.push(
+      rule.changes.length > 0 ? `changes: ${rule.changes.join(", ")}` : "changes"
+    );
+  }
+  if (rule.exists.length > 0) {
+    parts.push(`exists: ${rule.exists.join(", ")}`);
+  }
+  if (rule.when) {
+    parts.push(`when: ${rule.when}`);
+  }
+  return parts.join("; ") || "unconditional";
+}
+function extractIncludes(root, available) {
+  if (!("include" in root) || root.include === void 0 || root.include === null) {
+    return [];
+  }
+  const entries = Array.isArray(root.include) ? root.include : [root.include];
+  return entries.flatMap((entry) => classifyInclude(entry, available));
+}
+function classifyInclude(entry, available) {
+  if (typeof entry === "string") {
+    return [classifyIncludeString(entry, available)];
+  }
+  const record = asRecord2(entry);
+  if (!record) {
+    return [unexpanded("unknown", "include: unsupported entry")];
+  }
+  if (typeof record.local === "string") {
+    return [localInclude(record.local, available)];
+  }
+  if (typeof record.remote === "string") {
+    return [unexpanded("remote", `remote: ${record.remote.trim()}`)];
+  }
+  if (typeof record.template === "string") {
+    return [unexpanded("template", `template: ${record.template.trim()}`)];
+  }
+  if (typeof record.component === "string") {
+    return [unexpanded("component", `component: ${record.component.trim()}`)];
+  }
+  if ("project" in record) {
+    const project = typeof record.project === "string" ? record.project.trim() : "unknown";
+    const file = formatProjectFile(record.file);
+    return [
+      unexpanded(
+        "project",
+        file ? `project: ${project} file: ${file}` : `project: ${project}`
+      )
+    ];
+  }
+  return [unexpanded("unknown", "include: unsupported entry")];
+}
+function classifyIncludeString(entry, available) {
+  const trimmed = entry.trim();
+  if (isRemoteLocator(trimmed)) {
+    return unexpanded("remote", `remote: ${trimmed}`);
+  }
+  return localInclude(trimmed, available);
+}
+function localInclude(value, available) {
+  const localPath = normalizeRepoPath(value);
+  if (!localPath) {
+    return {
+      kind: "local",
+      expanded: false,
+      locator: `local: ${value.trim()}`
+    };
+  }
+  return {
+    kind: "local",
+    localPath,
+    expanded: available.has(localPath),
+    locator: `local: ${localPath}`
+  };
+}
+function unexpanded(kind, locator) {
+  return { kind, expanded: false, locator };
+}
+function isRemoteLocator(value) {
+  return /^https?:\/\//i.test(value) || value.startsWith("git@") || value.startsWith("ssh://");
+}
+function formatProjectFile(value) {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+  if (Array.isArray(value)) {
+    return value.filter((entry) => typeof entry === "string").map((entry) => entry.trim()).filter(Boolean).join(", ");
+  }
+  return "";
+}
+function normalizeJobs2(root) {
+  const jobs = {};
+  for (const [id, value] of Object.entries(root)) {
+    if (globalKeys.has(id)) {
+      continue;
+    }
+    const job = asRecord2(value);
+    if (!job) {
+      continue;
+    }
+    jobs[id] = {
+      id,
+      image: imageRef(job.image),
+      services: normalizeServices2(job.services),
+      tags: tagsRef(job.tags),
+      rules: normalizeRules(job.rules),
+      variables: normalizeVariables(job.variables),
+      idTokens: normalizeIdTokens(job.id_tokens),
+      scripts: collectScripts(job, "")
+    };
+  }
+  return jobs;
+}
+function normalizeRules(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((entry) => {
+    const rule = normalizeRule(entry);
+    return rule ? [rule] : [];
+  });
+}
+function normalizeRule(value) {
+  const record = asRecord2(value);
+  if (!record) {
+    return null;
+  }
+  const ifClause = typeof record.if === "string" ? record.if : void 0;
+  const when = typeof record.when === "string" ? record.when : void 0;
+  const hasChanges = hasChangeGuard(record.changes);
+  const changes = changePaths(record.changes);
+  const exists = stringList2(record.exists);
+  const guarded = Boolean(ifClause) || hasChanges || exists.length > 0;
+  return {
+    ifClause,
+    when,
+    changes,
+    hasChanges,
+    exists,
+    unconditionalPositive: !guarded && when !== "never",
+    restrictive: guarded || when === "never"
+  };
+}
+function hasChangeGuard(value) {
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+  return Boolean(value) && typeof value === "object";
+}
+function changePaths(value) {
+  if (Array.isArray(value)) {
+    return stringList2(value);
+  }
+  const record = asRecord2(value);
+  if (!record) {
+    return [];
+  }
+  return stringList2(record.paths);
+}
+function normalizeVariables(value) {
+  const record = asRecord2(value);
+  if (!record) {
+    return [];
+  }
+  return Object.entries(record).map(([name, raw]) => {
+    if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
+      return { name, protected: false, valueText: String(raw) };
+    }
+    const map = asRecord2(raw);
+    const variableValue = map?.value;
+    const valueText = typeof variableValue === "string" || typeof variableValue === "number" || typeof variableValue === "boolean" ? String(variableValue) : void 0;
+    return {
+      name,
+      protected: map?.protected === true,
+      valueText
+    };
+  });
+}
+function normalizeServices2(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item, index) => {
+    if (typeof item === "string" && item.trim()) {
+      return [{ key: `image:${item}`, image: item, label: item }];
+    }
+    const record = asRecord2(item);
+    if (!record) {
+      return [];
+    }
+    const name = typeof record.name === "string" ? record.name : void 0;
+    const alias = typeof record.alias === "string" ? record.alias : void 0;
+    const label = alias || name || `service ${index + 1}`;
+    const key = alias ? `alias:${alias}` : name ? `image:${name}` : `index:${index}`;
+    return [{ key, image: name, label }];
+  });
+}
+function normalizeIdTokens(value) {
+  const record = asRecord2(value);
+  if (!record) {
+    return [];
+  }
+  return Object.entries(record).map(([name, raw]) => ({
+    name,
+    aud: formatAud(asRecord2(raw)?.aud)
+  }));
+}
+function formatAud(value) {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+  if (Array.isArray(value)) {
+    const audiences = value.filter(
+      (entry) => typeof entry === "string" && entry.trim() !== ""
+    );
+    return audiences.length > 0 ? audiences.join(", ") : void 0;
+  }
+  return void 0;
+}
+function collectScripts(source, prefix) {
+  const scripts = [];
+  for (const key of scriptKeys) {
+    for (const text of scriptLines(source[key])) {
+      scripts.push({ location: `${prefix}${key}`.trim(), text });
+    }
+  }
+  return scripts;
+}
+function scriptLines(value) {
+  if (typeof value === "string") {
+    return [value];
+  }
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry) => typeof entry === "string");
+}
+function imageRef(value) {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+  const record = asRecord2(value);
+  if (typeof record?.name === "string" && record.name.trim()) {
+    return record.name.trim();
+  }
+  return void 0;
+}
+function tagsRef(value) {
+  if (value === void 0 || value === null) {
+    return void 0;
+  }
+  return stringList2(value);
+}
+function stringList2(value) {
+  if (typeof value === "string") {
+    return [value];
+  }
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry) => typeof entry === "string");
+}
+function asRecord2(value) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value;
+  }
+  return null;
+}
+
+// src/providers/gitlab-ci/diff.ts
+var protectedSecretName = /(?:^|_)(TOKEN|PASSWORD|SECRET|PRIVATE_KEY|ACCESS_KEY|JWT)(?:_|$)/;
+function diffConfigs(baseFiles, headFiles) {
+  const findings = [];
+  const baseByPath = new Map(baseFiles.map((file) => [file.path, file]));
+  const headByPath = new Map(headFiles.map((file) => [file.path, file]));
+  const paths = [
+    .../* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])
+  ].sort();
+  for (const filePath of paths) {
+    const base = baseByPath.get(filePath);
+    const head = headByPath.get(filePath);
+    if (base && !head) {
+      findings.push(fileRemovedFinding(base));
+      continue;
+    }
+    if (head && !base) {
+      findings.push(fileAddedFinding(head));
+      if (head.valid) {
+        findings.push(...diffFile(void 0, head));
+      }
+      continue;
+    }
+    if (base?.valid && head?.valid && base.raw !== head.raw) {
+      findings.push(...diffFile(base, head));
+    }
+  }
+  return findings;
+}
+function diffFile(base, head) {
+  return [
+    ...diffIncludes(base, head),
+    ...diffVariables(
+      head.path,
+      void 0,
+      base?.variables ?? [],
+      head.variables
+    ),
+    ...diffRules({
+      file: head.path,
+      label: "Workflow",
+      removedId: "workflow-rules-removed",
+      widenedId: "workflow-rules-widened",
+      removedTitle: "Workflow rules removed",
+      widenedTitle: "Workflow rules match more broadly",
+      baseRules: base?.workflowRules ?? [],
+      headRules: head.workflowRules
+    }),
+    ...diffImage(head.path, void 0, "Root", base?.rootImage, head.rootImage),
+    ...diffServices(
+      head.path,
+      void 0,
+      "Root",
+      base?.rootServices ?? [],
+      head.rootServices
+    ),
+    ...diffScripts(
+      head.path,
+      void 0,
+      "Root",
+      base?.rootScripts ?? [],
+      head.rootScripts
+    ),
+    ...diffImage(
+      head.path,
+      void 0,
+      "default",
+      base?.defaultImage,
+      head.defaultImage
+    ),
+    ...diffServices(
+      head.path,
+      void 0,
+      "default",
+      base?.defaultServices ?? [],
+      head.defaultServices
+    ),
+    ...diffTags(
+      head.path,
+      void 0,
+      "default",
+      base?.defaultTags,
+      head.defaultTags
+    ),
+    ...diffIdTokens(
+      head.path,
+      void 0,
+      "default",
+      base?.defaultIdTokens ?? [],
+      head.defaultIdTokens
+    ),
+    ...diffScripts(
+      head.path,
+      void 0,
+      "default",
+      base?.defaultScripts ?? [],
+      head.defaultScripts
+    ),
+    ...diffJobs(base, head)
+  ];
+}
+function diffJobs(base, head) {
+  const findings = [];
+  const baseJobs = base?.jobs ?? {};
+  const jobIds = [
+    .../* @__PURE__ */ new Set([...Object.keys(baseJobs), ...Object.keys(head.jobs)])
+  ].sort();
+  for (const jobId of jobIds) {
+    const baseJob = baseJobs[jobId];
+    const headJob = head.jobs[jobId];
+    if (baseJob && !headJob) {
+      findings.push({
+        id: "job-removed",
+        title: "CI job removed",
+        severity: "medium",
+        category: "workflow-graph",
+        file: head.path,
+        job: jobId,
+        evidence: [`Job \`${jobId}\` was removed.`],
+        recommendation: "Confirm the removed job is no longer required by pipeline gates."
+      });
+      continue;
+    }
+    if (!headJob) {
+      continue;
+    }
+    if (!baseJob) {
+      findings.push({
+        id: "job-added",
+        title: "CI job added",
+        severity: isDeployJob2(jobId) ? "medium" : "low",
+        category: "workflow-graph",
+        file: head.path,
+        job: jobId,
+        evidence: [`Job \`${jobId}\` was added.`],
+        recommendation: "Confirm the new job's rules, image, runner tags, and secrets are intentional."
+      });
+    }
+    findings.push(...diffJob(head.path, baseJob, headJob));
+  }
+  return findings;
+}
+function diffJob(file, base, head) {
+  const scope = `Job \`${head.id}\``;
+  return [
+    ...diffRules({
+      file,
+      job: head.id,
+      label: scope,
+      removedId: "job-rules-removed",
+      widenedId: "job-rules-widened",
+      removedTitle: "Job rules removed",
+      widenedTitle: "Job rules match more broadly",
+      baseRules: base?.rules ?? [],
+      headRules: head.rules
+    }),
+    ...diffVariables(file, head.id, base?.variables ?? [], head.variables),
+    ...diffImage(file, head.id, scope, base?.image, head.image),
+    ...diffServices(file, head.id, scope, base?.services ?? [], head.services),
+    ...diffTags(file, head.id, scope, base?.tags, head.tags),
+    ...diffIdTokens(file, head.id, scope, base?.idTokens ?? [], head.idTokens),
+    ...diffScripts(file, head.id, scope, base?.scripts ?? [], head.scripts)
+  ];
+}
+function diffIncludes(base, head) {
+  return head.includes.filter(
+    (include) => !include.expanded && !wasAlreadyUnresolved(base, include)
+  ).map((include) => includeFinding(head.path, include));
+}
+function wasAlreadyUnresolved(base, include) {
+  if (!base) {
+    return false;
+  }
+  return base.includes.some(
+    (candidate) => candidate.locator === include.locator && candidate.expanded === false
+  );
+}
+function includeFinding(file, include) {
+  return {
+    id: "include-not-expanded",
+    title: "CI include was not expanded",
+    severity: "medium",
+    category: "config",
+    file,
+    evidence: [`\`${include.locator}\``],
+    recommendation: "ci-delta did not expand this include. Remote includes are not fetched, and a missing local path was not in the file snapshot. Review that configuration separately."
+  };
+}
+function diffRules(params) {
+  const gated = params.baseRules.some((rule) => rule.restrictive);
+  if (gated && params.headRules.length === 0) {
+    const previous = params.baseRules.map((rule) => `\`${renderRule(rule)}\``).join(", ");
+    return [
+      {
+        id: params.removedId,
+        title: params.removedTitle,
+        severity: "high",
+        category: "trigger",
+        file: params.file,
+        job: params.job,
+        before: params.baseRules.map((rule) => renderRule(rule)),
+        after: [],
+        evidence: [
+          `${params.label} rules were removed. Previous rules: ${previous}.`
+        ],
+        recommendation: "Removing rules drops the previous gate. Confirm the job or pipeline should run under GitLab's default rule behavior. ci-delta does not fully evaluate rule expressions."
+      }
+    ];
+  }
+  const evidence = widenedEvidence(
+    params.label,
+    params.baseRules,
+    params.headRules
+  );
+  if (evidence.length === 0) {
+    return [];
+  }
+  return [
+    {
+      id: params.widenedId,
+      title: params.widenedTitle,
+      severity: "high",
+      category: "trigger",
+      file: params.file,
+      job: params.job,
+      before: params.baseRules.map((rule) => renderRule(rule)),
+      after: params.headRules.map((rule) => renderRule(rule)),
+      evidence,
+      recommendation: "Confirm this broader rule match is intentional. ci-delta only reports unconditional rules and removed guards; it does not fully evaluate rule expressions."
+    }
+  ];
+}
+function widenedEvidence(label, baseRules, headRules) {
+  if (baseRules.length === 0 || headRules.length === 0) {
+    return [];
+  }
+  const evidence = [];
+  const baseHasUnconditional = baseRules.some(
+    (rule) => rule.unconditionalPositive
+  );
+  const addedUnconditional = headRules.filter(
+    (rule) => rule.unconditionalPositive
+  );
+  if (!baseHasUnconditional && addedUnconditional.length > 0) {
+    const rendered = addedUnconditional.map((rule) => `\`${renderRule(rule)}\``).join(", ");
+    evidence.push(`${label} added an unconditional rule (${rendered}).`);
+  }
+  if (baseRules.length === headRules.length) {
+    for (const [index, baseRule] of baseRules.entries()) {
+      const headRule = headRules[index];
+      if (!headRule) {
+        continue;
+      }
+      const baseGuarded = hasGuard(baseRule);
+      const headGuarded = hasGuard(headRule);
+      if (baseGuarded && !headGuarded && headRule.when !== "never" && baseRule.when === headRule.when) {
+        evidence.push(
+          `${label} removed the guard from rule ${index + 1} (\`${renderRule(baseRule)}\` -> \`${renderRule(headRule)}\`).`
+        );
+      }
+      if (headGuarded && baseRule.hasChanges && !headRule.hasChanges && baseRule.ifClause === headRule.ifClause && baseRule.when === headRule.when && sameStrings(baseRule.exists, headRule.exists)) {
+        evidence.push(
+          `${label} removed the \`changes\` guard from rule ${index + 1} (\`${renderRule(baseRule)}\`).`
+        );
+      }
+      if (headGuarded && baseRule.exists.length > 0 && headRule.exists.length === 0 && baseRule.ifClause === headRule.ifClause && baseRule.when === headRule.when && baseRule.hasChanges === headRule.hasChanges) {
+        evidence.push(
+          `${label} removed the \`exists\` guard from rule ${index + 1} (\`${renderRule(baseRule)}\`).`
+        );
+      }
+      if (baseRule.ifClause && baseRule.ifClause === headRule.ifClause && baseRule.hasChanges === headRule.hasChanges && sameStrings(baseRule.exists, headRule.exists) && baseRule.when === "never" && headRule.when !== "never") {
+        const nextWhen = headRule.when ? `\`when: ${headRule.when}\`` : "`when: on_success` (default)";
+        evidence.push(
+          `${label} rule \`if: ${baseRule.ifClause}\` changed from \`when: never\` to ${nextWhen}.`
+        );
+      }
+    }
+  }
+  return evidence;
+}
+function diffVariables(file, job, baseVariables, headVariables) {
+  const findings = [];
+  const baseByName = new Map(
+    baseVariables.map((variable) => [variable.name, variable])
+  );
+  const scope = job ? `Job \`${job}\` variable` : "Variable";
+  for (const variable of headVariables) {
+    const before = baseByName.get(variable.name);
+    if (variable.protected && !before?.protected) {
+      findings.push({
+        id: "protected-variable-added",
+        title: "Protected variable added",
+        severity: "high",
+        category: "secret",
+        file,
+        job,
+        evidence: [`${scope} \`${variable.name}\` is now \`protected: true\`.`],
+        recommendation: "Confirm this protected variable is required and is only exposed on the intended protected refs."
+      });
+    }
+    const addedRefs = newSecretRefs(before?.valueText, variable.valueText);
+    if (addedRefs.length > 0) {
+      findings.push({
+        id: "protected-secret-reference-added",
+        title: "Protected secret reference added",
+        severity: "high",
+        category: "secret",
+        file,
+        job,
+        evidence: [
+          `${scope} \`${variable.name}\` newly references ${formatRefs(addedRefs)}.`
+        ],
+        recommendation: "Confirm this new secret reference is required and is not exposed to untrusted pipelines."
+      });
+    }
+  }
+  return findings;
+}
+function diffScripts(file, job, scope, baseScripts, headScripts) {
+  const addedRefs = newSecretRefs(
+    baseScripts.map((script) => script.text).join("\n"),
+    headScripts.map((script) => script.text).join("\n")
+  );
+  if (addedRefs.length === 0) {
+    return [];
+  }
+  const cited = headScripts.flatMap((script) => script.text.split("\n")).map((line) => line.trim()).filter((line) => addedRefs.some((ref) => line.includes(ref))).slice(0, 4);
+  return [
+    {
+      id: "protected-secret-reference-added",
+      title: "Protected secret reference added",
+      severity: "high",
+      category: "secret",
+      file,
+      job,
+      evidence: [
+        `${scope} script newly references ${formatRefs(addedRefs)}.`,
+        ...cited.map((line) => `\`${line}\``)
+      ],
+      recommendation: "Confirm this new secret reference in the script is required. Prefer CI variables over interpolating tokens into commands when possible."
+    }
+  ];
+}
+function diffImage(file, job, scope, before, after) {
+  if (before === after || !before && !after) {
+    return [];
+  }
+  const evidence = imageEvidence(scope, before, after);
+  const latest = after ? imageUsesLatest2(after) : false;
+  return [
+    {
+      id: "image-changed",
+      title: "Image changed",
+      severity: "medium",
+      category: "runner",
+      file,
+      job,
+      before,
+      after,
+      evidence: [evidence],
+      recommendation: latest ? "Avoid mutable latest image tags in CI jobs." : "Confirm the image source and tag are trusted."
+    }
+  ];
+}
+function diffServices(file, job, scope, baseServices, headServices) {
+  const findings = [];
+  const used = /* @__PURE__ */ new Set();
+  const unpairedBase = [];
+  for (const service of baseServices) {
+    const index = headServices.findIndex(
+      (candidate, candidateIndex) => !used.has(candidateIndex) && candidate.key === service.key
+    );
+    if (index === -1) {
+      unpairedBase.push(service);
+      continue;
+    }
+    used.add(index);
+    const headService = headServices[index];
+    if (headService && service.image !== headService.image) {
+      findings.push(serviceFinding(file, job, scope, service, headService));
+    }
+  }
+  const unpairedHead = headServices.filter((_, index) => !used.has(index));
+  const pairedRemainder = unpairedBase.length === 1 && unpairedHead.length === 1 && unpairedBase[0] && unpairedHead[0];
+  if (pairedRemainder && unpairedBase[0].image !== unpairedHead[0].image) {
+    findings.push(
+      serviceFinding(file, job, scope, unpairedBase[0], unpairedHead[0])
+    );
+    return findings;
+  }
+  for (const service of unpairedBase) {
+    findings.push(serviceFinding(file, job, scope, service, void 0));
+  }
+  for (const service of unpairedHead) {
+    findings.push(serviceFinding(file, job, scope, void 0, service));
+  }
+  return findings;
+}
+function serviceFinding(file, job, scope, before, after) {
+  const label = after?.label ?? before?.label ?? "service";
+  let detail;
+  if (before?.image && after?.image) {
+    detail = `${scope} service \`${label}\` image changed from \`${before.image}\` to \`${after.image}\`.`;
+  } else if (after?.image) {
+    detail = `${scope} service \`${label}\` image is now \`${after.image}\`.`;
+  } else {
+    detail = `${scope} service \`${label}\` image \`${before?.image ?? "unknown"}\` was removed.`;
+  }
+  return {
+    id: "service-image-changed",
+    title: "Service image changed",
+    severity: "medium",
+    category: "runner",
+    file,
+    job,
+    before: before?.image,
+    after: after?.image,
+    evidence: [detail],
+    recommendation: "Confirm the service image source and tag are trusted."
+  };
+}
+function diffTags(file, job, scope, before, after) {
+  if (before === void 0 && after === void 0) {
+    return [];
+  }
+  const baseTags = before ?? [];
+  const headTags = after ?? [];
+  if (sameStrings(baseTags, headTags)) {
+    return [];
+  }
+  const removed = baseTags.length > 0 && headTags.length === 0;
+  const added = baseTags.length === 0 && headTags.length > 0;
+  const id = added ? "runner-tags-added" : removed ? "runner-tags-removed" : "runner-tags-changed";
+  const title = added ? "Runner tags added" : removed ? "Runner tags removed" : "Runner tags changed";
+  const evidence = added ? `${scope} tags added: ${formatList2(headTags)}.` : removed ? `${scope} tags removed: ${formatList2(baseTags)}.` : `${scope} tags changed from ${formatList2(baseTags)} to ${formatList2(headTags)}.`;
+  return [
+    {
+      id,
+      title,
+      severity: "medium",
+      category: "runner",
+      file,
+      job,
+      before: baseTags,
+      after: headTags,
+      evidence: [evidence],
+      recommendation: "Confirm the runner tags still select a trusted runner fleet."
+    }
+  ];
+}
+function diffIdTokens(file, job, scope, baseTokens, headTokens) {
+  const baseNames = new Set(baseTokens.map((token) => token.name));
+  return headTokens.filter((token) => !baseNames.has(token.name)).map((token) => {
+    const aud = token.aud ? ` with aud \`${token.aud}\`` : "";
+    return {
+      id: "id-token-added",
+      title: "OIDC id_token added",
+      severity: "high",
+      category: "oidc",
+      file,
+      job,
+      evidence: [`${scope} added id_token \`${token.name}\`${aud}.`],
+      recommendation: "Confirm the OIDC audience and downstream trust policy are limited to this project and the intended refs."
+    };
+  });
+}
+function fileAddedFinding(file) {
+  return {
+    id: "ci-file-added",
+    title: "CI file added",
+    severity: "medium",
+    category: "config",
+    file: file.path,
+    evidence: [`New CI file detected: ${file.path}`],
+    recommendation: "Review the new CI file's jobs, rules, images, runner tags, and secrets before merge."
+  };
+}
+function fileRemovedFinding(file) {
+  return {
+    id: "ci-file-removed",
+    title: "CI file removed",
+    severity: "medium",
+    category: "config",
+    file: file.path,
+    evidence: [`CI file removed: ${file.path}`],
+    recommendation: "Confirm the removed CI file is no longer required by pipeline gates."
+  };
+}
+function imageEvidence(scope, before, after) {
+  if (before && after) {
+    return `${scope} image changed from \`${before}\` to \`${after}\`.`;
+  }
+  if (after) {
+    return `${scope} image is now \`${after}\`.`;
+  }
+  return `${scope} image \`${before ?? "unknown"}\` was removed.`;
+}
+function newSecretRefs(before, after) {
+  const previous = new Set(secretRefNames(before));
+  const displays = /* @__PURE__ */ new Map();
+  for (const ref of secretRefMatches(after)) {
+    if (!previous.has(ref.name) && !displays.has(ref.name)) {
+      displays.set(ref.name, ref.display);
+    }
+  }
+  return [...displays.values()];
+}
+function secretRefNames(text) {
+  return secretRefMatches(text).map((ref) => ref.name);
+}
+function secretRefMatches(text) {
+  if (!text) {
+    return [];
+  }
+  const matches = [];
+  const secretPattern2 = /\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?/g;
+  for (const match2 of text.matchAll(secretPattern2)) {
+    const name = match2[1];
+    if (!name || !protectedSecretName.test(name)) {
+      continue;
+    }
+    const raw = match2[0];
+    const display = raw.startsWith("${") ? `\${${name}}` : `$${name}`;
+    matches.push({ name, display });
+  }
+  return matches;
+}
+function formatRefs(refs) {
+  return refs.map((ref) => `\`${ref}\``).join(", ");
+}
+function formatList2(values) {
+  if (values.length === 0) {
+    return "`none`";
+  }
+  return values.map((value) => `\`${value}\``).join(", ");
+}
+function hasGuard(rule) {
+  return Boolean(rule.ifClause) || rule.hasChanges || rule.exists.length > 0;
+}
+function sameStrings(left, right) {
+  return left.length === right.length && left.every((value) => right.includes(value));
+}
+function imageUsesLatest2(image) {
+  return image.endsWith(":latest") || !image.includes(":");
+}
+function isDeployJob2(jobId) {
+  return /deploy|release|publish/i.test(jobId);
+}
+
+// src/providers/gitlab-ci/adapter.ts
+var GitLabCiAdapter = class {
+  id = "gitlab-ci";
+  displayName = "GitLab CI";
+  workflowGlobs = [".gitlab-ci.yml", ".gitlab-ci.yaml"];
+  async expandFiles(source, files) {
+    const byPath2 = new Map(files.map((file) => [file.path, file]));
+    const pending = [...files];
+    const attempted = /* @__PURE__ */ new Set();
+    while (pending.length > 0) {
+      const file = pending.shift();
+      if (!file) {
+        break;
+      }
+      for (const includePath of localIncludePaths(file.content)) {
+        if (byPath2.has(includePath) || attempted.has(includePath)) {
+          continue;
+        }
+        attempted.add(includePath);
+        const extra = await source.readFile(includePath);
+        if (!extra) {
+          continue;
+        }
+        byPath2.set(extra.path, extra);
+        pending.push(extra);
+      }
+    }
+    return [...byPath2.values()].sort(
+      (left, right) => left.path.localeCompare(right.path)
+    );
+  }
+  async parse(files) {
+    const available = new Set(files.map((file) => file.path));
+    const parsed = [];
+    const parseFindings = [];
+    for (const file of [...files].sort(
+      (left, right) => left.path.localeCompare(right.path)
+    )) {
+      const doc = parseYamlRoot(file.content);
+      if (!doc.root) {
+        parseFindings.push({
+          id: "ci-file-parse-error",
+          title: "CI file parse error",
+          severity: "high",
+          category: "config",
+          file: file.path,
+          evidence: doc.errors,
+          recommendation: "Fix invalid CI YAML before relying on CI Delta results."
+        });
+        parsed.push(invalidCiFile(file.path, file.content));
+        continue;
+      }
+      parsed.push(
+        normalizeCiFile(file.path, file.content, doc.root, available)
+      );
+    }
+    return { files: parsed, parseFindings };
+  }
+  async diff(base, head) {
+    return [
+      ...base.parseFindings,
+      ...head.parseFindings,
+      ...diffConfigs(base.files, head.files)
+    ];
+  }
+};
+
 // src/reporters/json.ts
 var reportSchemaVersion = "ci-delta.report.v1";
 function reportToJson(report) {
@@ -13609,7 +14589,7 @@ function reportToMarkdown(report) {
     ""
   );
   if (report.changedFiles.length === 0) {
-    lines.push("No GitHub Actions workflow changes detected.");
+    lines.push(emptyChangeMessage(report.provider));
     return lines.join("\n");
   }
   lines.push("Changed workflow files:");
@@ -13647,29 +14627,68 @@ function reportToMarkdown(report) {
 function capitalize(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
+function emptyChangeMessage(provider) {
+  if (provider === "gitlab-ci") {
+    return "No GitLab CI config changes detected.";
+  }
+  return "No GitHub Actions workflow changes detected.";
+}
+
+// src/cli/providers.ts
+function resolveProviderId(input) {
+  switch (input) {
+    case "github-actions":
+    case "gha":
+    case "github":
+      return "github-actions";
+    case "gitlab-ci":
+    case "gitlab":
+      return "gitlab-ci";
+    default:
+      return null;
+  }
+}
 
 // src/cli/index.ts
-var providerAliases = /* @__PURE__ */ new Set(["github-actions", "gha", "github"]);
 async function run() {
   const program2 = new Command();
-  program2.name("ci-delta").description("Semantic diff reports for CI/CD config changes").argument("<provider>", "Provider name (github-actions, gha, github)").requiredOption("--base <ref>", "Base git ref").requiredOption("--head <ref>", "Head git ref").option("--format <format>", "markdown or json", "markdown").option("--output <file>", "Write report to file").option("--fail-on <severity>", "none|low|medium|high|critical", "none").option("--repo-root <path>", "Repository root", process.cwd()).option("--include <glob>", "Additional include glob", collectIncludes, []).option("--no-color", "Disable color output").showHelpAfterError();
+  program2.name("ci-delta").description("Semantic diff reports for CI/CD config changes").argument(
+    "<provider>",
+    "Provider name (github-actions, gha, github, gitlab-ci, gitlab)"
+  ).requiredOption("--base <ref>", "Base git ref").requiredOption("--head <ref>", "Head git ref").option("--format <format>", "markdown or json", "markdown").option("--output <file>", "Write report to file").option("--fail-on <severity>", "none|low|medium|high|critical", "none").option("--repo-root <path>", "Repository root", process.cwd()).option("--include <glob>", "Additional include glob", collectIncludes, []).option("--no-color", "Disable color output").showHelpAfterError();
   program2.parse(process.argv);
-  const providerInput = program2.args[0];
-  if (!providerAliases.has(providerInput)) {
+  const providerInput = program2.args[0] ?? "";
+  const providerId = resolveProviderId(providerInput);
+  if (!providerId) {
     program2.error(`Unsupported provider: ${providerInput}`, { exitCode: 2 });
+    return;
   }
   const options = program2.opts();
   if (!["markdown", "json"].includes(options.format)) {
     program2.error(`Invalid --format: ${options.format}`, { exitCode: 2 });
+    return;
   }
-  const adapter = new GitHubActionsAdapter();
+  switch (providerId) {
+    case "github-actions":
+      await execute(new GitHubActionsAdapter(), options);
+      return;
+    case "gitlab-ci":
+      await execute(new GitLabCiAdapter(), options);
+      return;
+    default: {
+      const unsupported = providerId;
+      throw new Error(`Unsupported provider: ${String(unsupported)}`);
+    }
+  }
+}
+async function execute(adapter, options) {
   const globs = [...adapter.workflowGlobs, ...options.include];
   const baseSource = new LocalGitFileSource(
-    path2.resolve(options.repoRoot),
+    path3.resolve(options.repoRoot),
     options.base
   );
   const headSource = new LocalGitFileSource(
-    path2.resolve(options.repoRoot),
+    path3.resolve(options.repoRoot),
     options.head
   );
   const report = await compareSources({
