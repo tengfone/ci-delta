@@ -6,7 +6,11 @@ import {
   GitHubApiFileSource,
   parseGitHubRepository,
 } from "../file-sources/github-api.js";
-import { GitHubActionsAdapter } from "../providers/github-actions/adapter.js";
+import {
+  createProviderAdapter,
+  providerAliases,
+  resolveProviderId,
+} from "../providers/registry.js";
 import { reportToJson } from "../reporters/json.js";
 import { reportToMarkdown } from "../reporters/markdown.js";
 
@@ -56,9 +60,12 @@ export async function runAction({
   env = process.env,
   fetchImpl = fetch,
 }: ActionRunOptions = {}): Promise<ActionRunResult> {
-  const provider = readInput(env, "provider", "github-actions");
-  if (provider !== "github-actions") {
-    throw new ActionConfigurationError(`Unsupported provider: ${provider}`);
+  const providerInput = readInput(env, "provider", "github-actions");
+  const providerId = resolveProviderId(providerInput);
+  if (!providerId) {
+    throw new ActionConfigurationError(
+      `Unsupported provider: ${providerInput}. Use one of: ${providerAliases}.`,
+    );
   }
 
   const format = readInput(env, "format", "markdown");
@@ -87,7 +94,7 @@ export async function runAction({
   }
 
   const apiUrl = env.GITHUB_API_URL ?? "https://api.github.com";
-  const adapter = new GitHubActionsAdapter();
+  const adapter = createProviderAdapter(providerId);
   const report = await compareSources({
     provider: adapter,
     baseSource: new GitHubApiFileSource({

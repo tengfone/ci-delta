@@ -135,6 +135,69 @@ jobs:
   });
 });
 
+describe("runAction with GitLab CI", () => {
+  it("compares GitLab CI files, including local includes, through the GitHub API", async () => {
+    const tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "ci-delta-action-gitlab-"),
+    );
+    const eventPath = path.join(tempDir, "event.json");
+    await fs.writeFile(
+      eventPath,
+      JSON.stringify({
+        repository: { full_name: "acme/repo" },
+        pull_request: {
+          number: 42,
+          base: { sha: "base-sha", repo: { full_name: "acme/repo" } },
+          head: { sha: "head-sha", repo: { full_name: "acme/repo" } },
+        },
+      }),
+      "utf8",
+    );
+
+    const root = "include:\n  - local: ci/*.yml\n";
+    const fetchMock = createGitHubFetchMock({
+      "acme/repo@base-sha": {
+        ".gitlab-ci.yml": root,
+        "ci/deploy.yml":
+          "deploy:\n  script: ./deploy.sh\n  environment: production\n  when: manual\n",
+      },
+      "acme/repo@head-sha": {
+        ".gitlab-ci.yml": root,
+        "ci/deploy.yml":
+          "deploy:\n  script: ./deploy.sh\n  environment: production\n",
+      },
+    });
+
+    const result = await runAction({
+      env: {
+        GITHUB_API_URL: "https://api.github.test",
+        GITHUB_EVENT_PATH: eventPath,
+        "INPUT_GITHUB-TOKEN": "token",
+        "INPUT_FAIL-ON": "high",
+        INPUT_COMMENT: "false",
+        INPUT_FORMAT: "json",
+        INPUT_PROVIDER: "gitlab",
+      },
+      fetchImpl: fetchMock.fetch,
+    });
+
+    expect(result.report.provider).toBe("gitlab-ci");
+    expect(result.report.changedFiles).toContain("ci/deploy.yml");
+    expect(result.report.findings.map((finding) => finding.id)).toEqual([
+      "manual-gate-removed",
+    ]);
+    expect(result.failed).toBe(true);
+    expect(result.markdown).toContain("Changed CI files:");
+    expect(JSON.parse(result.output).provider).toBe("gitlab-ci");
+  });
+
+  it("rejects an unknown provider", async () => {
+    await expect(
+      runAction({ env: { INPUT_PROVIDER: "circleci" } }),
+    ).rejects.toThrow(/Unsupported provider: circleci/);
+  });
+});
+
 describe("upsertStickyComment", () => {
   it("updates an existing sticky comment", async () => {
     const calls: Array<{ url: string; method: string; body?: unknown }> = [];

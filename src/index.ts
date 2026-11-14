@@ -5,6 +5,7 @@ export * from "./core/severity.js";
 export * from "./providers/github-actions/adapter.js";
 export * from "./providers/github-actions/normalize.js";
 export * from "./providers/gitlab-ci/adapter.js";
+export * from "./providers/registry.js";
 export * from "./reporters/markdown.js";
 export * from "./reporters/json.js";
 export * from "./file-sources/local-git.js";

@@ -6,11 +6,13 @@ import { compareSources } from "../core/engine.js";
 import { meetsThreshold } from "../core/severity.js";
 import type { ProviderAdapter, Severity } from "../core/types.js";
 import { LocalGitFileSource } from "../file-sources/local-git.js";
-import { GitHubActionsAdapter } from "../providers/github-actions/adapter.js";
-import { GitLabCiAdapter } from "../providers/gitlab-ci/adapter.js";
+import {
+  createProviderAdapter,
+  providerAliases,
+  resolveProviderId,
+} from "../providers/registry.js";
 import { reportToJson } from "../reporters/json.js";
 import { reportToMarkdown } from "../reporters/markdown.js";
-import { resolveProviderId } from "./providers.js";
 
 async function run(): Promise<void> {
   const program = new Command();
@@ -18,10 +20,7 @@ async function run(): Promise<void> {
   program
     .name("ci-delta")
     .description("Semantic diff reports for CI/CD config changes")
-    .argument(
-      "<provider>",
-      "Provider name (github-actions, gha, github, gitlab-ci, gitlab)",
-    )
+    .argument("<provider>", `Provider name (${providerAliases})`)
     .requiredOption("--base <ref>", "Base git ref")
     .requiredOption("--head <ref>", "Head git ref")
     .option("--format <format>", "markdown or json", "markdown")
@@ -56,18 +55,7 @@ async function run(): Promise<void> {
     return;
   }
 
-  switch (providerId) {
-    case "github-actions":
-      await execute(new GitHubActionsAdapter(), options);
-      return;
-    case "gitlab-ci":
-      await execute(new GitLabCiAdapter(), options);
-      return;
-    default: {
-      const unsupported: never = providerId;
-      throw new Error(`Unsupported provider: ${String(unsupported)}`);
-    }
-  }
+  await execute(createProviderAdapter(providerId), options);
 }
 
 async function execute<Snapshot>(

@@ -6,7 +6,7 @@ author: tengfone
 
 inputs:
   provider:
-    description: github-actions for v0
+    description: CI provider to analyze, github-actions (alias gha, github) or gitlab-ci (alias gitlab)
     required: false
     default: github-actions
   comment:
@@ -22,7 +22,7 @@ inputs:
     required: false
     default: markdown
   github-token:
-    description: GitHub token used to read workflow files and post PR comments
+    description: GitHub token used to read CI config files and post PR comments
     required: false
     default: ${{ github.token }}
 
