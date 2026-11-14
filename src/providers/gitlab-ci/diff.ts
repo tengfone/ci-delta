@@ -128,9 +128,14 @@ function diffProblems(
     ),
   );
 
+  // A missing extends or !reference target may live in an include that
+  // ci-delta did not fetch (for example a GitLab template).
+  const incomplete = head.includes.some((record) => record.notExpandedReason);
+
   return head.problems
     .filter((problem) => !known.has(`${problem.kind}|${problem.detail}`))
     .map((problem) => {
+      const maybeExternal = incomplete && problem.kind !== "include-cycle";
       const meta = {
         extends: {
           id: "extends-unresolved",
@@ -149,13 +154,19 @@ function diffProblems(
       return {
         id: meta.id,
         title: meta.title,
-        severity: "medium" as const,
+        severity: maybeExternal ? ("info" as const) : ("medium" as const),
         category: "config" as const,
         file: problem.file,
         job: problem.job,
-        evidence: [problem.detail],
-        recommendation:
-          "GitLab rejects or ignores configuration it cannot resolve. Fix the reference so the effective job configuration is what you expect.",
+        evidence: maybeExternal
+          ? [
+              problem.detail,
+              "It may be defined in an include that ci-delta did not expand; findings for this job do not include that configuration.",
+            ]
+          : [problem.detail],
+        recommendation: maybeExternal
+          ? "Review the job together with the configuration from the unexpanded include."
+          : "GitLab rejects or ignores configuration it cannot resolve. Fix the reference so the effective job configuration is what you expect.",
       };
     });
 }

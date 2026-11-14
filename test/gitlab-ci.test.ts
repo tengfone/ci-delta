@@ -901,6 +901,25 @@ deploy:
     );
   });
 
+  it("grades unresolved extends as info when an include was not expanded", async () => {
+    const findings = await diffYaml(
+      {
+        ".gitlab-ci.yml":
+          "include:\n  - template: Jobs/SAST.gitlab-ci.yml\nbuild:\n  script: make\n",
+      },
+      {
+        ".gitlab-ci.yml":
+          "include:\n  - template: Jobs/SAST.gitlab-ci.yml\nbuild:\n  script: make\nsemgrep-sast:\n  extends: .sast-analyzer\n",
+      },
+    );
+    expect(summarize(findings)).toEqual(
+      [
+        "extends-unresolved:info:semgrep-sast",
+        "job-added:low:semgrep-sast",
+      ].sort(),
+    );
+  });
+
   it("does not cascade job removals from a file that no longer parses", async () => {
     const findings = await diffYaml(
       {
