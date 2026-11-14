@@ -2,7 +2,7 @@
 
 Risk: None
 
-Changed workflow files:
+Changed CI files:
 
 - `.gitlab-ci.yml`
 

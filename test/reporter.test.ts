@@ -29,6 +29,37 @@ describe("reportToMarkdown", () => {
   });
 });
 
+describe("reportToMarkdown changed files heading", () => {
+  it("uses provider-specific wording", () => {
+    const finding = {
+      id: "image-changed",
+      title: "Image changed",
+      severity: "medium" as const,
+      category: "runner" as const,
+      file: ".gitlab-ci.yml",
+      evidence: [],
+    };
+    const gitlab = reportToMarkdown(
+      buildReport({
+        provider: "gitlab-ci",
+        changedFiles: [".gitlab-ci.yml"],
+        findings: [finding],
+      }),
+    );
+    expect(gitlab).toContain("Changed CI files:");
+    expect(gitlab).not.toContain("Changed workflow files:");
+
+    const github = reportToMarkdown(
+      buildReport({
+        provider: "github-actions",
+        changedFiles: [".github/workflows/ci.yml"],
+        findings: [],
+      }),
+    );
+    expect(github).toContain("Changed workflow files:");
+  });
+});
+
 describe("reportToJson", () => {
   it("includes a stable schema version", () => {
     const report = buildReport({

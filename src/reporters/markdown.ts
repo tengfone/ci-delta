@@ -23,7 +23,7 @@ export function reportToMarkdown(report: Report): string {
     return lines.join("\n");
   }
 
-  lines.push("Changed workflow files:");
+  lines.push(changedFilesHeading(report.provider));
   for (const file of report.changedFiles) {
     lines.push(`- \`${file}\``);
   }
@@ -65,6 +65,14 @@ export function reportToMarkdown(report: Report): string {
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function changedFilesHeading(provider: string): string {
+  if (provider === "gitlab-ci") {
+    return "Changed CI files:";
+  }
+
+  return "Changed workflow files:";
 }
 
 function emptyChangeMessage(provider: string): string {
