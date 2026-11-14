@@ -1,0 +1,5 @@
+migrate:
+  script: ./migrate.sh
+  secrets:
+    DATABASE_PASSWORD:
+      vault: production/db/password@ops

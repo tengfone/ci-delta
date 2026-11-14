@@ -1,0 +1,3 @@
+image-build:
+  image: docker:27
+  script: docker build .

@@ -1,0 +1,23 @@
+{
+  "changedFiles": ["ci/deploy.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "deployment-production-added",
+      "severity": "high",
+      "file": "ci/deploy.yml",
+      "job": "deploy"
+    },
+    {
+      "id": "job-added",
+      "severity": "medium",
+      "file": "ci/deploy.yml",
+      "job": "deploy"
+    },
+    {
+      "id": "ci-file-added",
+      "severity": "info",
+      "file": "ci/deploy.yml"
+    }
+  ]
+}

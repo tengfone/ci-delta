@@ -1,0 +1,2 @@
+migrate:
+  script: ./migrate.sh

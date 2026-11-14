@@ -59,19 +59,22 @@ function registerFixtureSuite<Snapshot>(
 
         expect(report.changedFiles).toEqual(expected.changedFiles);
         expect(report.maxSeverity).toBe(expected.maxSeverity);
+        // Findings are sorted by severity, category, and file; ties keep the
+        // provider's emission order. Compare as a sorted list so fixtures do
+        // not depend on that tie order.
+        const checksFile = expected.findings.some(
+          (finding) => "file" in finding,
+        );
         expect(
-          report.findings.map((finding, index) => {
-            const expectedFinding = expected.findings[index];
-            return {
+          sortFindings(
+            report.findings.map((finding) => ({
               id: finding.id,
               severity: finding.severity,
-              ...(expectedFinding && "file" in expectedFinding
-                ? { file: finding.file }
-                : {}),
+              ...(checksFile ? { file: finding.file } : {}),
               ...(finding.job ? { job: finding.job } : {}),
-            };
-          }),
-        ).toEqual(expected.findings);
+            })),
+          ),
+        ).toEqual(sortFindings(expected.findings));
 
         const markdown = reportToMarkdown(report);
         for (const line of expectedMarkdown
@@ -97,6 +100,16 @@ registerFixtureSuite(
   () => new GitLabCiAdapter(),
 );
 
+function sortFindings(findings: ExpectedFinding[]): ExpectedFinding[] {
+  const key = (finding: ExpectedFinding) =>
+    [finding.severity, finding.id, finding.file ?? "", finding.job ?? ""].join(
+      "|",
+    );
+  return [...findings].sort((left, right) =>
+    key(left).localeCompare(key(right)),
+  );
+}
+
 class FixtureFileSource implements FileSource {
   public constructor(private readonly root: string) {}
 
@@ -111,6 +124,10 @@ class FixtureFileSource implements FileSource {
         (snapshot): snapshot is FileSnapshot => snapshot !== null,
       ),
     );
+  }
+
+  public async listPaths(): Promise<string[]> {
+    return listRelativeFiles(this.root);
   }
 
   public async readFile(filePath: string): Promise<FileSnapshot | null> {

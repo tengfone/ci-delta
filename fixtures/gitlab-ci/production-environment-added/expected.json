@@ -1,0 +1,12 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "critical",
+  "findings": [
+    {
+      "id": "deployment-production-added",
+      "severity": "critical",
+      "file": ".gitlab-ci.yml",
+      "job": "ship"
+    }
+  ]
+}

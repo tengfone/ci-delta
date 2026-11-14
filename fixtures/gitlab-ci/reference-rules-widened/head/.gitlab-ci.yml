@@ -1,0 +1,7 @@
+.rules:
+  main_only:
+    - if: $CI_COMMIT_BRANCH
+publish:
+  rules:
+    - !reference [.rules, main_only]
+  script: ./publish.sh

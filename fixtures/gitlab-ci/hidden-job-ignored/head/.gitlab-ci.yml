@@ -1,0 +1,9 @@
+.experimental:
+  image: docker:dind
+  services: [docker:dind]
+  secrets:
+    TOKEN:
+      vault: ops/token@kv
+  script: echo $DEPLOY_TOKEN
+build:
+  script: make

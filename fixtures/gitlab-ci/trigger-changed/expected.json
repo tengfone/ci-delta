@@ -1,0 +1,18 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "trigger-changed",
+      "severity": "high",
+      "file": ".gitlab-ci.yml",
+      "job": "child"
+    },
+    {
+      "id": "trigger-strategy-removed",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml",
+      "job": "child"
+    }
+  ]
+}

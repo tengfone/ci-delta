@@ -1,0 +1,2 @@
+ignored:
+  script: echo not matched by ci/*.yml

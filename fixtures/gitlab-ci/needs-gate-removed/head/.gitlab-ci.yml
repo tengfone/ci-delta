@@ -1,0 +1,10 @@
+build:
+  stage: build
+  script: make
+test:
+  stage: test
+  script: make test
+deploy:
+  stage: deploy
+  needs: [build]
+  script: ./deploy.sh

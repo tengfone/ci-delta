@@ -1,0 +1,18 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "privileged-service-added",
+      "severity": "high",
+      "file": ".gitlab-ci.yml",
+      "job": "image-build"
+    },
+    {
+      "id": "service-image-changed",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml",
+      "job": "image-build"
+    }
+  ]
+}

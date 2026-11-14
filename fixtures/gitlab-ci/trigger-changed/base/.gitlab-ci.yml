@@ -1,0 +1,4 @@
+child:
+  trigger:
+    include: ci/child.yml
+    strategy: depend

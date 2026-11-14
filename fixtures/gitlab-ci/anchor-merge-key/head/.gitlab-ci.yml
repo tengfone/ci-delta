@@ -1,0 +1,6 @@
+.deploy_defaults: &deploy_defaults
+  tags: [shared]
+  environment: production
+deploy:
+  <<: *deploy_defaults
+  script: ./deploy.sh

@@ -3,7 +3,7 @@
   "maxSeverity": "high",
   "findings": [
     {
-      "id": "ci-file-parse-error",
+      "id": "workflow-parse-error",
       "severity": "high",
       "file": ".gitlab-ci.yml"
     }

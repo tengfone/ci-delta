@@ -1,0 +1,10 @@
+deploy:
+  script: ./deploy.sh
+  only:
+    - main
+    - merge_requests
+lint:
+  script: make lint
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /skip-lint/

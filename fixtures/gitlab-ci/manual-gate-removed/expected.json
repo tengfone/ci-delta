@@ -1,0 +1,12 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "manual-gate-removed",
+      "severity": "high",
+      "file": ".gitlab-ci.yml",
+      "job": "deploy_prod"
+    }
+  ]
+}

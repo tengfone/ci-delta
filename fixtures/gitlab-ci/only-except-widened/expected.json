@@ -1,0 +1,18 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "job-rules-widened",
+      "severity": "high",
+      "file": ".gitlab-ci.yml",
+      "job": "deploy"
+    },
+    {
+      "id": "job-rules-widened",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml",
+      "job": "lint"
+    }
+  ]
+}

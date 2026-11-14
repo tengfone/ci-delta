@@ -1,0 +1,4 @@
+include:
+  - local: ci/*.yml
+test:
+  script: make test

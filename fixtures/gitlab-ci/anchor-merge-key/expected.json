@@ -1,0 +1,12 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "medium",
+  "findings": [
+    {
+      "id": "runner-tags-changed",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml",
+      "job": "deploy"
+    }
+  ]
+}

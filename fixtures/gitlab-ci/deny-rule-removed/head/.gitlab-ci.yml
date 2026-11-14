@@ -1,0 +1,4 @@
+test:
+  script: make test
+  rules:
+    - when: always

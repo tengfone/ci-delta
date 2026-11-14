@@ -1,0 +1,3 @@
+deploy:
+  script: ./deploy.sh
+  environment: production

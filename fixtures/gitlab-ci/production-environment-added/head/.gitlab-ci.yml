@@ -1,0 +1,4 @@
+ship:
+  script: ./ship.sh
+  environment:
+    name: production/eu

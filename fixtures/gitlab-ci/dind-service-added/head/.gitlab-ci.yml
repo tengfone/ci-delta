@@ -1,0 +1,6 @@
+image-build:
+  image: docker:27
+  services:
+    - name: docker:27-dind
+      alias: docker
+  script: docker build .

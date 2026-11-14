@@ -1,0 +1,6 @@
+deploy_prod:
+  stage: deploy
+  script: ./deploy.sh
+  environment:
+    name: production
+  when: manual

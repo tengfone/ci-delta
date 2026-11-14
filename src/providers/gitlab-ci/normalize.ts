@@ -1,53 +1,61 @@
-import path from "node:path";
-import { parseDocument } from "yaml";
+import { asRecord, stringList, type JsonObject } from "../shared.js";
+import type {
+  IncludeRecord,
+  ResolvedJob,
+  ResolvedPipeline,
+  ResolveProblem,
+} from "./resolve.js";
 
-export type JsonObject = Record<string, unknown>;
+export type { JsonObject };
 
-const globalKeys = new Set([
-  "default",
-  "include",
-  "stages",
-  "variables",
-  "workflow",
-  "spec",
-  "image",
-  "services",
-  "before_script",
-  "after_script",
-  "cache",
-  "types",
-]);
-
-const scriptKeys = ["before_script", "script", "after_script"] as const;
-
-export type IncludeKind =
-  | "local"
-  | "remote"
-  | "project"
-  | "template"
-  | "component"
-  | "unknown";
-
-export interface GitLabInclude {
-  kind: IncludeKind;
-  localPath?: string;
-  expanded: boolean;
-  locator: string;
-}
+/** GitLab's stage list when `stages:` is not set. */
+export const defaultStages = [".pre", "build", "test", "deploy", ".post"];
 
 export interface GitLabRule {
   ifClause?: string;
+  /** `when:` exactly as written, if any. */
   when?: string;
   changes: string[];
   hasChanges: boolean;
+  compareTo?: string;
   exists: string[];
-  unconditionalPositive: boolean;
-  restrictive: boolean;
+  hasExists: boolean;
+}
+
+export interface GitLabOnlyExcept {
+  refs: string[];
+  variables: string[];
+  changes: string[];
+  kubernetes?: string;
+}
+
+export interface GitLabNeed {
+  name: string;
+  optional: boolean;
+}
+
+export interface GitLabTrigger {
+  /** Downstream project for multi-project pipelines. */
+  project?: string;
+  branch?: string;
+  /** Child pipeline configuration sources, rendered. */
+  include: string[];
+  strategy?: string;
+}
+
+export interface GitLabEnvironment {
+  name: string;
+  action?: string;
+  deploymentTier?: string;
+}
+
+export interface GitLabSecret {
+  name: string;
+  source: string;
 }
 
 export interface GitLabVariable {
   name: string;
-  protected: boolean;
   valueText?: string;
 }
 
@@ -60,6 +68,7 @@ export interface GitLabService {
 export interface GitLabScript {
   location: string;
   text: string;
+  inherited: boolean;
 }
 
 export interface GitLabIdToken {
@@ -67,291 +76,162 @@ export interface GitLabIdToken {
   aud?: string;
 }
 
+export type AllowFailure = "true" | "false" | "exit_codes";
+
 export interface GitLabJob {
   id: string;
+  file: string;
+  extends: string[];
+  stage: string;
+  /** Job-level `when:`; undefined means GitLab's default (`on_success`). */
+  when?: string;
+  allowFailure: AllowFailure;
+  /** undefined when the job has no `rules:` keyword. */
+  rules?: GitLabRule[];
+  only?: GitLabOnlyExcept;
+  except?: GitLabOnlyExcept;
+  /** undefined means stage ordering; [] means the job starts immediately. */
+  needs?: GitLabNeed[];
+  trigger?: GitLabTrigger;
+  environment?: GitLabEnvironment;
+  resourceGroup?: string;
+  secrets: GitLabSecret[];
   image?: string;
   services: GitLabService[];
   tags?: string[];
-  rules: GitLabRule[];
+  idTokens: GitLabIdToken[];
   variables: GitLabVariable[];
+  scripts: GitLabScript[];
+  /** Keywords that came from `default:` rather than the job itself. */
+  inherited: Set<string>;
+}
+
+export interface GitLabDefaults {
+  file: string;
+  image?: string;
+  services: GitLabService[];
+  tags?: string[];
   idTokens: GitLabIdToken[];
   scripts: GitLabScript[];
 }
 
-export interface GitLabCiFile {
-  path: string;
-  raw: string;
-  valid: boolean;
-  jobs: Record<string, GitLabJob>;
-  workflowRules: GitLabRule[];
+export interface GitLabPipeline {
+  rootPath: string;
+  files: string[];
+  workflowRules?: GitLabRule[];
+  workflowFile: string;
+  stages: string[];
+  stagesFile: string;
   variables: GitLabVariable[];
-  defaultImage?: string;
-  defaultServices: GitLabService[];
-  defaultTags?: string[];
-  defaultScripts: GitLabScript[];
-  defaultIdTokens: GitLabIdToken[];
-  rootImage?: string;
-  rootServices: GitLabService[];
-  rootScripts: GitLabScript[];
-  includes: GitLabInclude[];
+  variablesFile: string;
+  defaults: GitLabDefaults;
+  jobs: Record<string, GitLabJob>;
+  includes: IncludeRecord[];
+  problems: ResolveProblem[];
 }
 
-export function parseYamlRoot(content: string): {
-  root: JsonObject | null;
-  errors: string[];
-} {
-  const doc = parseDocument(content);
-  if (doc.errors.length > 0) {
-    return {
-      root: null,
-      errors: doc.errors.map((error) => error.message),
-    };
-  }
+export function normalizePipeline(resolved: ResolvedPipeline): GitLabPipeline {
+  const { config } = resolved;
+  const originOf = (key: string) =>
+    resolved.origins.get(key) ?? resolved.rootPath;
+  const workflow = asRecord(config.workflow) ?? {};
+  const defaults = resolved.defaults;
+  const stages = normalizeStages(config.stages ?? config.types);
 
-  return { root: asRecord(doc.toJSON()) ?? {}, errors: [] };
-}
-
-export function localIncludePaths(content: string): string[] {
-  const parsed = parseYamlRoot(content);
-  if (!parsed.root) {
-    return [];
-  }
-
-  return extractIncludes(parsed.root, new Set())
-    .map((include) => include.localPath)
-    .filter((includePath): includePath is string => Boolean(includePath));
-}
-
-export function normalizeCiFile(
-  filePath: string,
-  raw: string,
-  root: JsonObject,
-  available: Set<string>,
-): GitLabCiFile {
-  const defaults = asRecord(root.default) ?? {};
-  const workflow = asRecord(root.workflow) ?? {};
-
-  return {
-    path: filePath,
-    raw,
-    valid: true,
-    jobs: normalizeJobs(root),
-    workflowRules: normalizeRules(workflow.rules),
-    variables: normalizeVariables(root.variables),
-    defaultImage: imageRef(defaults.image),
-    defaultServices: normalizeServices(defaults.services),
-    defaultTags: tagsRef(defaults.tags),
-    defaultScripts: collectScripts(defaults, "default "),
-    defaultIdTokens: normalizeIdTokens(defaults.id_tokens),
-    rootImage: imageRef(root.image),
-    rootServices: normalizeServices(root.services),
-    rootScripts: collectScripts(root, ""),
-    includes: extractIncludes(root, available),
-  };
-}
-
-export function invalidCiFile(filePath: string, raw: string): GitLabCiFile {
-  return {
-    path: filePath,
-    raw,
-    valid: false,
-    jobs: {},
-    workflowRules: [],
-    variables: [],
-    defaultServices: [],
-    defaultScripts: [],
-    defaultIdTokens: [],
-    rootServices: [],
-    rootScripts: [],
-    includes: [],
-  };
-}
-
-export function normalizeRepoPath(input: string): string | null {
-  const trimmed = input.trim().replace(/\\/g, "/");
-  if (!trimmed || trimmed.includes("\0")) {
-    return null;
-  }
-
-  const normalized = path.posix.normalize(trimmed.replace(/^\/+/, ""));
-  if (
-    normalized === "." ||
-    normalized === ".." ||
-    normalized.startsWith("../") ||
-    normalized.startsWith("/")
-  ) {
-    return null;
-  }
-
-  return normalized;
-}
-
-export function renderRule(rule: GitLabRule): string {
-  const parts: string[] = [];
-  if (rule.ifClause) {
-    parts.push(`if: ${rule.ifClause}`);
-  }
-  if (rule.hasChanges) {
-    parts.push(
-      rule.changes.length > 0
-        ? `changes: ${rule.changes.join(", ")}`
-        : "changes",
-    );
-  }
-  if (rule.exists.length > 0) {
-    parts.push(`exists: ${rule.exists.join(", ")}`);
-  }
-  if (rule.when) {
-    parts.push(`when: ${rule.when}`);
-  }
-
-  return parts.join("; ") || "unconditional";
-}
-
-function extractIncludes(
-  root: JsonObject,
-  available: Set<string>,
-): GitLabInclude[] {
-  if (
-    !("include" in root) ||
-    root.include === undefined ||
-    root.include === null
-  ) {
-    return [];
-  }
-
-  const entries = Array.isArray(root.include) ? root.include : [root.include];
-  return entries.flatMap((entry) => classifyInclude(entry, available));
-}
-
-function classifyInclude(
-  entry: unknown,
-  available: Set<string>,
-): GitLabInclude[] {
-  if (typeof entry === "string") {
-    return [classifyIncludeString(entry, available)];
-  }
-
-  const record = asRecord(entry);
-  if (!record) {
-    return [unexpanded("unknown", "include: unsupported entry")];
-  }
-
-  if (typeof record.local === "string") {
-    return [localInclude(record.local, available)];
-  }
-
-  if (typeof record.remote === "string") {
-    return [unexpanded("remote", `remote: ${record.remote.trim()}`)];
-  }
-
-  if (typeof record.template === "string") {
-    return [unexpanded("template", `template: ${record.template.trim()}`)];
-  }
-
-  if (typeof record.component === "string") {
-    return [unexpanded("component", `component: ${record.component.trim()}`)];
-  }
-
-  if ("project" in record) {
-    const project =
-      typeof record.project === "string" ? record.project.trim() : "unknown";
-    const file = formatProjectFile(record.file);
-    return [
-      unexpanded(
-        "project",
-        file ? `project: ${project} file: ${file}` : `project: ${project}`,
-      ),
-    ];
-  }
-
-  return [unexpanded("unknown", "include: unsupported entry")];
-}
-
-function classifyIncludeString(
-  entry: string,
-  available: Set<string>,
-): GitLabInclude {
-  const trimmed = entry.trim();
-  if (isRemoteLocator(trimmed)) {
-    return unexpanded("remote", `remote: ${trimmed}`);
-  }
-
-  return localInclude(trimmed, available);
-}
-
-function localInclude(value: string, available: Set<string>): GitLabInclude {
-  const localPath = normalizeRepoPath(value);
-  if (!localPath) {
-    return {
-      kind: "local",
-      expanded: false,
-      locator: `local: ${value.trim()}`,
-    };
-  }
-
-  return {
-    kind: "local",
-    localPath,
-    expanded: available.has(localPath),
-    locator: `local: ${localPath}`,
-  };
-}
-
-function unexpanded(kind: IncludeKind, locator: string): GitLabInclude {
-  return { kind, expanded: false, locator };
-}
-
-function isRemoteLocator(value: string): boolean {
-  return (
-    /^https?:\/\//i.test(value) ||
-    value.startsWith("git@") ||
-    value.startsWith("ssh://")
-  );
-}
-
-function formatProjectFile(value: unknown): string {
-  if (typeof value === "string") {
-    return value.trim();
-  }
-
-  if (Array.isArray(value)) {
-    return value
-      .filter((entry): entry is string => typeof entry === "string")
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .join(", ");
-  }
-
-  return "";
-}
-
-function normalizeJobs(root: JsonObject): Record<string, GitLabJob> {
   const jobs: Record<string, GitLabJob> = {};
-
-  for (const [id, value] of Object.entries(root)) {
-    if (globalKeys.has(id)) {
-      continue;
-    }
-
-    const job = asRecord(value);
-    if (!job) {
-      continue;
-    }
-
-    jobs[id] = {
-      id,
-      image: imageRef(job.image),
-      services: normalizeServices(job.services),
-      tags: tagsRef(job.tags),
-      rules: normalizeRules(job.rules),
-      variables: normalizeVariables(job.variables),
-      idTokens: normalizeIdTokens(job.id_tokens),
-      scripts: collectScripts(job, ""),
-    };
+  for (const job of resolved.jobs) {
+    jobs[job.id] = normalizeJob(job);
   }
 
-  return jobs;
+  return {
+    rootPath: resolved.rootPath,
+    files: resolved.files,
+    workflowRules:
+      workflow.rules === undefined ? undefined : normalizeRules(workflow.rules),
+    workflowFile: originOf("workflow"),
+    stages,
+    stagesFile: originOf(config.stages !== undefined ? "stages" : "types"),
+    variables: normalizeVariables(config.variables),
+    variablesFile: originOf("variables"),
+    defaults: {
+      file: resolved.defaultsFile,
+      image: imageRef(defaults.image),
+      services: normalizeServices(defaults.services),
+      tags: tagsRef(defaults.tags),
+      idTokens: normalizeIdTokens(defaults.id_tokens),
+      scripts: collectScripts(defaults, new Set()),
+    },
+    jobs,
+    includes: resolved.includes,
+    problems: resolved.problems,
+  };
+}
+
+function normalizeStages(value: unknown): string[] {
+  const declared = stringList(value);
+  if (declared.length === 0) {
+    return defaultStages;
+  }
+
+  return [
+    ".pre",
+    ...declared.filter((stage) => stage !== ".pre" && stage !== ".post"),
+    ".post",
+  ];
+}
+
+function normalizeJob(resolved: ResolvedJob): GitLabJob {
+  const job = resolved.config;
+  const when = typeof job.when === "string" ? job.when : undefined;
+  const rules = job.rules === undefined ? undefined : normalizeRules(job.rules);
+
+  return {
+    id: resolved.id,
+    file: resolved.file,
+    extends: resolved.extends,
+    stage: typeof job.stage === "string" ? job.stage : "test",
+    when,
+    allowFailure: normalizeAllowFailure(job.allow_failure, when, rules),
+    rules: rules && rules.length > 0 ? rules : undefined,
+    only: normalizeOnlyExcept(job.only),
+    except: normalizeOnlyExcept(job.except),
+    needs: job.needs === undefined ? undefined : normalizeNeeds(job.needs),
+    trigger: normalizeTrigger(job.trigger),
+    environment: normalizeEnvironment(job.environment),
+    resourceGroup:
+      typeof job.resource_group === "string" && job.resource_group.trim()
+        ? job.resource_group.trim()
+        : undefined,
+    secrets: normalizeSecrets(job.secrets),
+    image: imageRef(job.image),
+    services: normalizeServices(job.services),
+    tags: tagsRef(job.tags),
+    idTokens: normalizeIdTokens(job.id_tokens),
+    variables: normalizeVariables(job.variables),
+    scripts: collectScripts(job, resolved.inherited),
+    inherited: resolved.inherited,
+  };
+}
+
+function normalizeAllowFailure(
+  value: unknown,
+  when: string | undefined,
+  rules: GitLabRule[] | undefined,
+): AllowFailure {
+  if (value === true) {
+    return "true";
+  }
+
+  if (value === false) {
+    return "false";
+  }
+
+  if (asRecord(value)) {
+    return "exit_codes";
+  }
+
+  // GitLab defaults manual jobs without rules to allow_failure: true.
+  return when === "manual" && !rules ? "true" : "false";
 }
 
 export function normalizeRules(value: unknown): GitLabRule[] {
@@ -360,54 +240,210 @@ export function normalizeRules(value: unknown): GitLabRule[] {
   }
 
   return value.flatMap((entry) => {
-    const rule = normalizeRule(entry);
-    return rule ? [rule] : [];
+    const record = asRecord(entry);
+    if (!record) {
+      return [];
+    }
+
+    const changesRecord = asRecord(record.changes);
+    const changes = changesRecord
+      ? stringList(changesRecord.paths)
+      : stringList(record.changes);
+    const existsRecord = asRecord(record.exists);
+    const exists = existsRecord
+      ? stringList(existsRecord.paths)
+      : stringList(record.exists);
+
+    return [
+      {
+        ifClause:
+          typeof record.if === "string" && record.if.trim()
+            ? normalizeExpression(record.if)
+            : undefined,
+        when: typeof record.when === "string" ? record.when : undefined,
+        changes: [...changes].sort(),
+        hasChanges: changes.length > 0 || changesRecord !== null,
+        compareTo:
+          typeof changesRecord?.compare_to === "string"
+            ? changesRecord.compare_to
+            : undefined,
+        exists: [...exists].sort(),
+        hasExists: exists.length > 0 || existsRecord !== null,
+      },
+    ];
   });
 }
 
-function normalizeRule(value: unknown): GitLabRule | null {
-  const record = asRecord(value);
-  if (!record) {
-    return null;
+export function normalizeExpression(expression: string): string {
+  return expression.trim().replace(/\s+/g, " ");
+}
+
+function normalizeOnlyExcept(value: unknown): GitLabOnlyExcept | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
   }
 
-  const ifClause = typeof record.if === "string" ? record.if : undefined;
-  const when = typeof record.when === "string" ? record.when : undefined;
-  const hasChanges = hasChangeGuard(record.changes);
-  const changes = changePaths(record.changes);
-  const exists = stringList(record.exists);
-  const guarded = Boolean(ifClause) || hasChanges || exists.length > 0;
+  if (typeof value === "string" || Array.isArray(value)) {
+    return { refs: stringList(value), variables: [], changes: [] };
+  }
 
+  const record = asRecord(value);
+  if (!record) {
+    return undefined;
+  }
+
+  const changesRecord = asRecord(record.changes);
   return {
-    ifClause,
-    when,
-    changes,
-    hasChanges,
-    exists,
-    unconditionalPositive: !guarded && when !== "never",
-    restrictive: guarded || when === "never",
+    refs: stringList(record.refs),
+    variables: stringList(record.variables).map(normalizeExpression),
+    changes: changesRecord
+      ? stringList(changesRecord.paths)
+      : stringList(record.changes),
+    kubernetes:
+      typeof record.kubernetes === "string" ? record.kubernetes : undefined,
   };
 }
 
-function hasChangeGuard(value: unknown): boolean {
-  if (Array.isArray(value)) {
-    return value.length > 0;
-  }
+function normalizeNeeds(value: unknown): GitLabNeed[] {
+  const entries = Array.isArray(value) ? value : [value];
+  return entries.flatMap((entry) => {
+    if (typeof entry === "string" && entry.trim()) {
+      return [{ name: entry.trim(), optional: false }];
+    }
 
-  return Boolean(value) && typeof value === "object";
+    const record = asRecord(entry);
+    if (!record || typeof record.job !== "string") {
+      return [];
+    }
+
+    const prefix =
+      typeof record.project === "string"
+        ? `${record.project}:`
+        : typeof record.pipeline === "string"
+          ? `pipeline ${record.pipeline}:`
+          : "";
+    return [
+      { name: `${prefix}${record.job}`, optional: record.optional === true },
+    ];
+  });
 }
 
-function changePaths(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return stringList(value);
+function normalizeTrigger(value: unknown): GitLabTrigger | undefined {
+  if (typeof value === "string" && value.trim()) {
+    return { project: value.trim(), include: [] };
   }
 
+  const record = asRecord(value);
+  if (!record) {
+    return undefined;
+  }
+
+  const includes = record.include === undefined ? [] : record.include;
+  return {
+    project: typeof record.project === "string" ? record.project : undefined,
+    branch: typeof record.branch === "string" ? record.branch : undefined,
+    include: (Array.isArray(includes) ? includes : [includes]).flatMap(
+      renderTriggerInclude,
+    ),
+    strategy: typeof record.strategy === "string" ? record.strategy : undefined,
+  };
+}
+
+function renderTriggerInclude(entry: unknown): string[] {
+  if (typeof entry === "string") {
+    return [`local: ${entry}`];
+  }
+
+  const record = asRecord(entry);
+  if (!record) {
+    return [];
+  }
+
+  return [
+    Object.entries(record)
+      .filter(([key]) => key !== "inputs")
+      .map(
+        ([key, raw]) =>
+          `${key}: ${typeof raw === "string" ? raw : JSON.stringify(raw)}`,
+      )
+      .join(" "),
+  ];
+}
+
+function normalizeEnvironment(value: unknown): GitLabEnvironment | undefined {
+  if (typeof value === "string" && value.trim()) {
+    return { name: value.trim() };
+  }
+
+  const record = asRecord(value);
+  if (!record || typeof record.name !== "string" || !record.name.trim()) {
+    return undefined;
+  }
+
+  return {
+    name: record.name.trim(),
+    action: typeof record.action === "string" ? record.action : undefined,
+    deploymentTier:
+      typeof record.deployment_tier === "string"
+        ? record.deployment_tier
+        : undefined,
+  };
+}
+
+const secretProviders = [
+  "vault",
+  "azure_key_vault",
+  "gcp_secret_manager",
+  "aws_secrets_manager",
+  "akeyless",
+  "gitlab_secrets_manager",
+];
+
+function normalizeSecrets(value: unknown): GitLabSecret[] {
   const record = asRecord(value);
   if (!record) {
     return [];
   }
 
-  return stringList(record.paths);
+  return Object.entries(record).map(([name, raw]) => ({
+    name,
+    source: describeSecretSource(raw),
+  }));
+}
+
+function describeSecretSource(value: unknown): string {
+  const record = asRecord(value);
+  if (!record) {
+    return "unknown source";
+  }
+
+  for (const provider of secretProviders) {
+    const config = record[provider];
+    if (config === undefined) {
+      continue;
+    }
+
+    if (typeof config === "string") {
+      return `${provider}: ${config}`;
+    }
+
+    const details = asRecord(config);
+    if (!details) {
+      return provider;
+    }
+
+    const engine = asRecord(details.engine);
+    const parts = [
+      engine && typeof engine.path === "string" ? `${engine.path}/` : "",
+      typeof details.path === "string" ? details.path : "",
+      typeof details.name === "string" ? details.name : "",
+      typeof details.field === "string" ? `#${details.field}` : "",
+      details.version !== undefined ? `@${String(details.version)}` : "",
+    ].join("");
+    return parts ? `${provider}: ${parts}` : provider;
+  }
+
+  return "unknown source";
 }
 
 export function normalizeVariables(value: unknown): GitLabVariable[] {
@@ -422,22 +458,18 @@ export function normalizeVariables(value: unknown): GitLabVariable[] {
       typeof raw === "number" ||
       typeof raw === "boolean"
     ) {
-      return { name, protected: false, valueText: String(raw) };
+      return { name, valueText: String(raw) };
     }
 
-    const map = asRecord(raw);
-    const variableValue = map?.value;
-    const valueText =
-      typeof variableValue === "string" ||
-      typeof variableValue === "number" ||
-      typeof variableValue === "boolean"
-        ? String(variableValue)
-        : undefined;
-
+    const variableValue = asRecord(raw)?.value;
     return {
       name,
-      protected: map?.protected === true,
-      valueText,
+      valueText:
+        typeof variableValue === "string" ||
+        typeof variableValue === "number" ||
+        typeof variableValue === "boolean"
+          ? String(variableValue)
+          : undefined,
     };
   });
 }
@@ -449,7 +481,7 @@ export function normalizeServices(value: unknown): GitLabService[] {
 
   return value.flatMap((item, index) => {
     if (typeof item === "string" && item.trim()) {
-      return [{ key: `image:${item}`, image: item, label: item }];
+      return [{ key: `image:${item}`, image: item.trim(), label: item.trim() }];
     }
 
     const record = asRecord(item);
@@ -487,39 +519,56 @@ function formatAud(value: unknown): string | undefined {
     return value.trim();
   }
 
-  if (Array.isArray(value)) {
-    const audiences = value.filter(
-      (entry): entry is string =>
-        typeof entry === "string" && entry.trim() !== "",
-    );
-    return audiences.length > 0 ? audiences.join(", ") : undefined;
-  }
-
-  return undefined;
+  const audiences = stringList(value)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return audiences.length > 0 ? audiences.join(", ") : undefined;
 }
 
-function collectScripts(source: JsonObject, prefix: string): GitLabScript[] {
+const scriptKeys = ["before_script", "script", "after_script"] as const;
+
+function collectScripts(
+  source: JsonObject,
+  inherited: Set<string>,
+): GitLabScript[] {
   const scripts: GitLabScript[] = [];
 
   for (const key of scriptKeys) {
     for (const text of scriptLines(source[key])) {
-      scripts.push({ location: `${prefix}${key}`.trim(), text });
+      scripts.push({ location: key, text, inherited: inherited.has(key) });
     }
   }
 
   return scripts;
 }
 
+/**
+ * GitLab flattens nested script arrays (common with `!reference`). A script
+ * line such as `- curl -H "PRIVATE-TOKEN: $TOKEN"` is a YAML mapping, which
+ * GitLab rejects; it is rendered back to text so its references are still
+ * analyzed.
+ */
 function scriptLines(value: unknown): string[] {
   if (typeof value === "string") {
     return [value];
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return [String(value)];
+  }
+
+  const record = asRecord(value);
+  if (record) {
+    return Object.entries(record).map(
+      ([key, entry]) => `${key}: ${scriptLines(entry).join(" ")}`,
+    );
   }
 
   if (!Array.isArray(value)) {
     return [];
   }
 
-  return value.filter((entry): entry is string => typeof entry === "string");
+  return value.flatMap((entry) => scriptLines(entry));
 }
 
 export function imageRef(value: unknown): string | undefined {
@@ -543,22 +592,46 @@ export function tagsRef(value: unknown): string[] | undefined {
   return stringList(value);
 }
 
-export function stringList(value: unknown): string[] {
-  if (typeof value === "string") {
-    return [value];
+export function renderRule(rule: GitLabRule): string {
+  const parts: string[] = [];
+  if (rule.ifClause) {
+    parts.push(`if: ${rule.ifClause}`);
+  }
+  if (rule.hasChanges) {
+    parts.push(
+      rule.changes.length > 0
+        ? `changes: ${rule.changes.join(", ")}`
+        : "changes",
+    );
+    if (rule.compareTo) {
+      parts.push(`compare_to: ${rule.compareTo}`);
+    }
+  }
+  if (rule.hasExists) {
+    parts.push(
+      rule.exists.length > 0 ? `exists: ${rule.exists.join(", ")}` : "exists",
+    );
+  }
+  if (rule.when) {
+    parts.push(`when: ${rule.when}`);
   }
 
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.filter((entry): entry is string => typeof entry === "string");
+  return parts.join("; ") || "unconditional";
 }
 
-export function asRecord(value: unknown): JsonObject | null {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value as JsonObject;
+export function renderOnlyExcept(value: GitLabOnlyExcept): string {
+  const parts: string[] = [];
+  if (value.refs.length > 0) {
+    parts.push(`refs: ${value.refs.join(", ")}`);
   }
-
-  return null;
+  if (value.variables.length > 0) {
+    parts.push(`variables: ${value.variables.join(", ")}`);
+  }
+  if (value.changes.length > 0) {
+    parts.push(`changes: ${value.changes.join(", ")}`);
+  }
+  if (value.kubernetes) {
+    parts.push(`kubernetes: ${value.kubernetes}`);
+  }
+  return parts.join("; ") || "empty";
 }

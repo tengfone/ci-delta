@@ -1,0 +1,18 @@
+{
+  "changedFiles": [".gitlab-ci.yml"],
+  "maxSeverity": "high",
+  "findings": [
+    {
+      "id": "possible-deploy-gate-removed",
+      "severity": "high",
+      "file": ".gitlab-ci.yml",
+      "job": "deploy"
+    },
+    {
+      "id": "job-dependency-removed",
+      "severity": "medium",
+      "file": ".gitlab-ci.yml",
+      "job": "deploy"
+    }
+  ]
+}

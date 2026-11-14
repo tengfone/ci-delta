@@ -1,0 +1,11 @@
+{
+  "changedFiles": [".gitlab-ci.yml", "ci/deploy.yml"],
+  "maxSeverity": "info",
+  "findings": [
+    {
+      "id": "ci-file-added",
+      "severity": "info",
+      "file": "ci/deploy.yml"
+    }
+  ]
+}

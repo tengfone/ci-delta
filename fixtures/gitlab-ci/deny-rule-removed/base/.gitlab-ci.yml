@@ -1,0 +1,6 @@
+test:
+  script: make test
+  rules:
+    - if: $CI_PROJECT_NAMESPACE != "acme"
+      when: never
+    - when: always
