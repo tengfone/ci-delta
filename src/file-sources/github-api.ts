@@ -57,6 +57,10 @@ export class GitHubApiFileSource implements FileSource {
     );
   }
 
+  public async listPaths(): Promise<string[]> {
+    return [...(await this.getTree()).keys()].sort();
+  }
+
   public async readFile(filePath: string): Promise<FileSnapshot | null> {
     const cached = this.blobCache.get(filePath);
     if (cached) {

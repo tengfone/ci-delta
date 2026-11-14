@@ -1,30 +1,33 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { minimatch } from "minimatch";
-import type { FileSnapshot } from "../core/types.js";
+import type { FileSnapshot, FileSource } from "../core/types.js";
 
 const execFileAsync = promisify(execFile);
 
-export class LocalGitFileSource {
+const maxBuffer = 64 * 1024 * 1024;
+
+export class LocalGitFileSource implements FileSource {
+  private pathsCache?: Promise<string[]>;
+
   public constructor(
     private readonly repoRoot: string,
     private readonly ref: string,
   ) {}
 
-  public async listFiles(globs: string[]): Promise<FileSnapshot[]> {
-    const { stdout } = await execFileAsync(
+  public listPaths(): Promise<string[]> {
+    this.pathsCache ??= execFileAsync(
       "git",
-      ["ls-tree", "-r", "--name-only", this.ref],
-      {
-        cwd: this.repoRoot,
-      },
-    );
+      ["ls-tree", "-r", "-z", "--name-only", this.ref],
+      { cwd: this.repoRoot, maxBuffer },
+    ).then(({ stdout }) => stdout.split("\0").filter(Boolean));
+    return this.pathsCache;
+  }
 
-    const files = stdout
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .filter((path) => globs.some((glob) => minimatch(path, glob)));
+  public async listFiles(globs: string[]): Promise<FileSnapshot[]> {
+    const files = (await this.listPaths()).filter((path) =>
+      globs.some((glob) => minimatch(path, glob)),
+    );
 
     return Promise.all(files.map(async (path) => this.readFile(path))).then(
       (snapshots) =>
@@ -36,12 +39,12 @@ export class LocalGitFileSource {
 
   public async readFile(path: string): Promise<FileSnapshot | null> {
     try {
+      // `git cat-file blob` fails for directories and missing paths, unlike
+      // `git show`, which prints a tree listing for a directory.
       const { stdout } = await execFileAsync(
         "git",
-        ["show", `${this.ref}:${path}`],
-        {
-          cwd: this.repoRoot,
-        },
+        ["cat-file", "blob", `${this.ref}:${path}`],
+        { cwd: this.repoRoot, maxBuffer },
       );
 
       return {

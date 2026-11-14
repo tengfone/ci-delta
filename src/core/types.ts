@@ -45,7 +45,13 @@ export interface FileSnapshot {
 
 export interface FileSource {
   listFiles(globs: string[]): Promise<FileSnapshot[]>;
+  /** Returns null when the path does not exist or is not a regular file. */
   readFile(path: string): Promise<FileSnapshot | null>;
+  /**
+   * Optional: every file path at this ref, without reading contents. Providers
+   * use it to resolve wildcard includes cheaply.
+   */
+  listPaths?(): Promise<string[]>;
 }
 
 export interface ProviderAdapter<Snapshot> {
