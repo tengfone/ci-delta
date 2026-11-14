@@ -347,7 +347,7 @@ var require_identity = __commonJS({
     var isDocument = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === DOC;
     var isMap = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === MAP;
     var isPair = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === PAIR;
-    var isScalar = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SCALAR;
+    var isScalar2 = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SCALAR;
     var isSeq = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SEQ;
     function isCollection(node) {
       if (node && typeof node === "object")
@@ -369,7 +369,7 @@ var require_identity = __commonJS({
         }
       return false;
     }
-    var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
+    var hasAnchor = (node) => (isScalar2(node) || isCollection(node)) && !!node.anchor;
     exports.ALIAS = ALIAS;
     exports.DOC = DOC;
     exports.MAP = MAP;
@@ -384,7 +384,7 @@ var require_identity = __commonJS({
     exports.isMap = isMap;
     exports.isNode = isNode;
     exports.isPair = isPair;
-    exports.isScalar = isScalar;
+    exports.isScalar = isScalar2;
     exports.isSeq = isSeq;
   }
 });
@@ -409,17 +409,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path2) {
-      const ctrl = callVisitor(key, node, visitor, path2);
+    function visit_(key, node, visitor, path3) {
+      const ctrl = callVisitor(key, node, visitor, path3);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path2, ctrl);
-        return visit_(key, ctrl, visitor, path2);
+        replaceNode(key, path3, ctrl);
+        return visit_(key, ctrl, visitor, path3);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path2 = Object.freeze(path2.concat(node));
+          path3 = Object.freeze(path3.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path2);
+            const ci = visit_(i, node.items[i], visitor, path3);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -430,13 +430,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path2 = Object.freeze(path2.concat(node));
-          const ck = visit_("key", node.key, visitor, path2);
+          path3 = Object.freeze(path3.concat(node));
+          const ck = visit_("key", node.key, visitor, path3);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path2);
+          const cv = visit_("value", node.value, visitor, path3);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -457,17 +457,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path2) {
-      const ctrl = await callVisitor(key, node, visitor, path2);
+    async function visitAsync_(key, node, visitor, path3) {
+      const ctrl = await callVisitor(key, node, visitor, path3);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path2, ctrl);
-        return visitAsync_(key, ctrl, visitor, path2);
+        replaceNode(key, path3, ctrl);
+        return visitAsync_(key, ctrl, visitor, path3);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path2 = Object.freeze(path2.concat(node));
+          path3 = Object.freeze(path3.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path2);
+            const ci = await visitAsync_(i, node.items[i], visitor, path3);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -478,13 +478,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path2 = Object.freeze(path2.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path2);
+          path3 = Object.freeze(path3.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path3);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path2);
+          const cv = await visitAsync_("value", node.value, visitor, path3);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -511,23 +511,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path2) {
+    function callVisitor(key, node, visitor, path3) {
       if (typeof visitor === "function")
-        return visitor(key, node, path2);
+        return visitor(key, node, path3);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path2);
+        return visitor.Map?.(key, node, path3);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path2);
+        return visitor.Seq?.(key, node, path3);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path2);
+        return visitor.Pair?.(key, node, path3);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path2);
+        return visitor.Scalar?.(key, node, path3);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path2);
+        return visitor.Alias?.(key, node, path3);
       return void 0;
     }
-    function replaceNode(key, path2, node) {
-      const parent = path2[path2.length - 1];
+    function replaceNode(key, path3, node) {
+      const parent = path3[path3.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -1135,10 +1135,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path2, value) {
+    function collectionFromPath(schema, path3, value) {
       let v = value;
-      for (let i = path2.length - 1; i >= 0; --i) {
-        const k = path2[i];
+      for (let i = path3.length - 1; i >= 0; --i) {
+        const k = path3[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -1157,7 +1157,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path2) => path2 == null || typeof path2 === "object" && !!path2[Symbol.iterator]().next().done;
+    var isEmptyPath = (path3) => path3 == null || typeof path3 === "object" && !!path3[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -1187,11 +1187,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path2, value) {
-        if (isEmptyPath(path2))
+      addIn(path3, value) {
+        if (isEmptyPath(path3))
           this.add(value);
         else {
-          const [key, ...rest] = path2;
+          const [key, ...rest] = path3;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -1205,8 +1205,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path2) {
-        const [key, ...rest] = path2;
+      deleteIn(path3) {
+        const [key, ...rest] = path3;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -1220,8 +1220,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path2, keepScalar) {
-        const [key, ...rest] = path2;
+      getIn(path3, keepScalar) {
+        const [key, ...rest] = path3;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -1239,8 +1239,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path2) {
-        const [key, ...rest] = path2;
+      hasIn(path3) {
+        const [key, ...rest] = path3;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -1250,8 +1250,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path2, value) {
-        const [key, ...rest] = path2;
+      setIn(path3, value) {
+        const [key, ...rest] = path3;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -1475,8 +1475,8 @@ var require_stringifyString = __commonJS({
             case "u":
               {
                 str += json.slice(start, i);
-                const code = json.substr(i + 2, 4);
-                switch (code) {
+                const code2 = json.substr(i + 2, 4);
+                switch (code2) {
                   case "0000":
                     str += "\\0";
                     break;
@@ -1502,8 +1502,8 @@ var require_stringifyString = __commonJS({
                     str += "\\P";
                     break;
                   default:
-                    if (code.substr(0, 2) === "00")
-                      str += "\\x" + code.substr(2);
+                    if (code2.substr(0, 2) === "00")
+                      str += "\\x" + code2.substr(2);
                     else
                       str += json.substr(i, 6);
                 }
@@ -3763,9 +3763,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path2, value) {
+      addIn(path3, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path2, value);
+          this.contents.addIn(path3, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3840,14 +3840,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path2) {
-        if (Collection.isEmptyPath(path2)) {
+      deleteIn(path3) {
+        if (Collection.isEmptyPath(path3)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path2) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path3) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3862,10 +3862,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path2, keepScalar) {
-        if (Collection.isEmptyPath(path2))
+      getIn(path3, keepScalar) {
+        if (Collection.isEmptyPath(path3))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path2, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path3, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3876,10 +3876,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path2) {
-        if (Collection.isEmptyPath(path2))
+      hasIn(path3) {
+        if (Collection.isEmptyPath(path3))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path2) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path3) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3896,13 +3896,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path2, value) {
-        if (Collection.isEmptyPath(path2)) {
+      setIn(path3, value) {
+        if (Collection.isEmptyPath(path3)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path2), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path3), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path2, value);
+          this.contents.setIn(path3, value);
         }
       }
       /**
@@ -3999,22 +3999,22 @@ var require_errors = __commonJS({
   "node_modules/yaml/dist/errors.js"(exports) {
     "use strict";
     var YAMLError = class extends Error {
-      constructor(name, pos, code, message) {
+      constructor(name, pos, code2, message) {
         super();
         this.name = name;
-        this.code = code;
+        this.code = code2;
         this.message = message;
         this.pos = pos;
       }
     };
     var YAMLParseError = class extends YAMLError {
-      constructor(pos, code, message) {
-        super("YAMLParseError", pos, code, message);
+      constructor(pos, code2, message) {
+        super("YAMLParseError", pos, code2, message);
       }
     };
     var YAMLWarning = class extends YAMLError {
-      constructor(pos, code, message) {
-        super("YAMLWarning", pos, code, message);
+      constructor(pos, code2, message) {
+        super("YAMLWarning", pos, code2, message);
       }
     };
     var prettifyError = (src, lc) => (error) => {
@@ -4923,7 +4923,7 @@ var require_resolve_flow_scalar = __commonJS({
       const { offset, type, source, end } = scalar;
       let _type;
       let value;
-      const _onError = (rel, code, msg) => onError(offset + rel, code, msg);
+      const _onError = (rel, code2, msg) => onError(offset + rel, code2, msg);
       switch (type) {
         case "scalar":
           _type = Scalar.Scalar.PLAIN;
@@ -5120,13 +5120,13 @@ var require_resolve_flow_scalar = __commonJS({
     function parseCharCode(source, offset, length, onError) {
       const cc = source.substr(offset, length);
       const ok = cc.length === length && /^[0-9a-fA-F]+$/.test(cc);
-      const code = ok ? parseInt(cc, 16) : NaN;
-      if (isNaN(code)) {
+      const code2 = ok ? parseInt(cc, 16) : NaN;
+      if (isNaN(code2)) {
         const raw = source.substr(offset - 2, length + 2);
         onError(offset - 2, "BAD_DQ_ESCAPE", `Invalid escape sequence ${raw}`);
         return raw;
       }
-      return String.fromCodePoint(code);
+      return String.fromCodePoint(code2);
     }
     exports.resolveFlowScalar = resolveFlowScalar;
   }
@@ -5443,12 +5443,12 @@ var require_composer = __commonJS({
         this.prelude = [];
         this.errors = [];
         this.warnings = [];
-        this.onError = (source, code, message, warning) => {
+        this.onError = (source, code2, message, warning) => {
           const pos = getErrorPos(source);
           if (warning)
-            this.warnings.push(new errors.YAMLWarning(pos, code, message));
+            this.warnings.push(new errors.YAMLWarning(pos, code2, message));
           else
-            this.errors.push(new errors.YAMLParseError(pos, code, message));
+            this.errors.push(new errors.YAMLParseError(pos, code2, message));
         };
         this.directives = new directives.Directives({ version: options.version || "1.2" });
         this.options = options;
@@ -5608,12 +5608,12 @@ var require_cst_scalar = __commonJS({
     var stringifyString = require_stringifyString();
     function resolveAsScalar(token, strict = true, onError) {
       if (token) {
-        const _onError = (pos, code, message) => {
+        const _onError = (pos, code2, message) => {
           const offset = typeof pos === "number" ? pos : Array.isArray(pos) ? pos[0] : pos.offset;
           if (onError)
-            onError(offset, code, message);
+            onError(offset, code2, message);
           else
-            throw new errors.YAMLParseError([offset, offset + 1], code, message);
+            throw new errors.YAMLParseError([offset, offset + 1], code2, message);
         };
         switch (token.type) {
           case "scalar":
@@ -5859,9 +5859,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path2) => {
+    visit.itemAtPath = (cst, path3) => {
       let item = cst;
-      for (const [field, index] of path2) {
+      for (const [field, index] of path3) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5870,23 +5870,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path2) => {
-      const parent = visit.itemAtPath(cst, path2.slice(0, -1));
-      const field = path2[path2.length - 1][0];
+    visit.parentCollection = (cst, path3) => {
+      const parent = visit.itemAtPath(cst, path3.slice(0, -1));
+      const field = path3[path3.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path2, item, visitor) {
-      let ctrl = visitor(item, path2);
+    function _visit(path3, item, visitor) {
+      let ctrl = visitor(item, path3);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path2.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path3.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5897,10 +5897,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path2);
+            ctrl = ctrl(item, path3);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path2) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path3) : ctrl;
     }
     exports.visit = visit;
   }
@@ -5918,7 +5918,7 @@ var require_cst = __commonJS({
     var FLOW_END = "";
     var SCALAR = "";
     var isCollection = (token) => !!token && "items" in token;
-    var isScalar = (token) => !!token && (token.type === "scalar" || token.type === "single-quoted-scalar" || token.type === "double-quoted-scalar" || token.type === "block-scalar");
+    var isScalar2 = (token) => !!token && (token.type === "scalar" || token.type === "single-quoted-scalar" || token.type === "double-quoted-scalar" || token.type === "block-scalar");
     function prettyToken(token) {
       switch (token) {
         case BOM:
@@ -6002,7 +6002,7 @@ var require_cst = __commonJS({
     exports.FLOW_END = FLOW_END;
     exports.SCALAR = SCALAR;
     exports.isCollection = isCollection;
-    exports.isScalar = isScalar;
+    exports.isScalar = isScalar2;
     exports.prettyToken = prettyToken;
     exports.tokenType = tokenType;
   }
@@ -7501,7 +7501,7 @@ var require_public_api = __commonJS({
       const lineCounter$1 = options.lineCounter || prettyErrors && new lineCounter.LineCounter() || null;
       return { lineCounter: lineCounter$1, prettyErrors };
     }
-    function parseAllDocuments(source, options = {}) {
+    function parseAllDocuments2(source, options = {}) {
       const { lineCounter: lineCounter2, prettyErrors } = parseOptions(options);
       const parser$1 = new parser.Parser(lineCounter2?.addNewLine);
       const composer$1 = new composer.Composer(options);
@@ -7576,7 +7576,7 @@ var require_public_api = __commonJS({
       return new Document.Document(value, _replacer, options).toString(options);
     }
     exports.parse = parse;
-    exports.parseAllDocuments = parseAllDocuments;
+    exports.parseAllDocuments = parseAllDocuments2;
     exports.parseDocument = parseDocument2;
     exports.stringify = stringify;
   }
@@ -7730,15 +7730,15 @@ function changedFilePaths(baseFiles, headFiles) {
   const paths = /* @__PURE__ */ new Set();
   const baseByPath = toPathMap(baseFiles);
   const headByPath = toPathMap(headFiles);
-  for (const path2 of /* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])) {
-    const base = baseByPath.get(path2);
-    const head = headByPath.get(path2);
+  for (const path3 of /* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])) {
+    const base = baseByPath.get(path3);
+    const head = headByPath.get(path3);
     if (!base || !head) {
-      paths.add(path2);
+      paths.add(path3);
       continue;
     }
     if (base.content !== head.content || base.sha !== head.sha) {
-      paths.add(path2);
+      paths.add(path3);
     }
   }
   return [...paths].sort();
@@ -9311,6 +9311,9 @@ var GitHubApiFileSource = class {
       )
     );
   }
+  async listPaths() {
+    return [...(await this.getTree()).keys()].sort();
+  }
   async readFile(filePath) {
     const cached = this.blobCache.get(filePath);
     if (cached) {
@@ -9358,8 +9361,8 @@ var GitHubApiFileSource = class {
     );
     return this.treeCache;
   }
-  async request(path2) {
-    const response = await this.fetchImpl(`${this.apiUrl}${path2}`, {
+  async request(path3) {
+    const response = await this.fetchImpl(`${this.apiUrl}${path3}`, {
       headers: {
         Accept: "application/vnd.github+json",
         Authorization: `Bearer ${this.options.token}`,
@@ -9391,11 +9394,95 @@ function parseGitHubRepository(fullName) {
 // src/providers/github-actions/adapter.ts
 var import_yaml = __toESM(require_dist(), 1);
 
+// src/providers/shared.ts
+var parseErrorFindingId = "workflow-parse-error";
+function asRecord(value) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value;
+  }
+  return null;
+}
+function stringList(value) {
+  if (typeof value === "string") {
+    return [value];
+  }
+  if (Array.isArray(value)) {
+    return value.filter((item) => typeof item === "string");
+  }
+  return [];
+}
+function stringValue(value) {
+  return typeof value === "string" ? value : void 0;
+}
+function formatList(values, emptyLabel = "`<all>`") {
+  if (values.length === 0) {
+    return emptyLabel;
+  }
+  return values.map((value) => `\`${value}\``).join(", ");
+}
+function sameStringSet(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const right = new Set(b);
+  return new Set(a).size === right.size && a.every((value) => right.has(value));
+}
+function imageUsesLatest(image) {
+  if (image.includes("@sha256:")) {
+    return false;
+  }
+  const lastSegment = image.split("/").pop() ?? image;
+  return lastSegment.endsWith(":latest") || !lastSegment.includes(":");
+}
+function isDockerInDockerImage(image) {
+  if (!image) {
+    return false;
+  }
+  const lastSegment = image.toLowerCase().split("/").pop() ?? "";
+  return /^docker:(?:[^\s]*-)?dind(?:-[^\s]*)?$/.test(lastSegment);
+}
+function isPrivilegedService(image, options) {
+  return isDockerInDockerImage(image) || options?.toLowerCase().includes("privileged") === true;
+}
+function isProductionEnvironment(environment) {
+  return /^prod(uction)?$/i.test(environment);
+}
+function isDeployLikeName(...names) {
+  const haystack = names.filter((name) => Boolean(name)).join(" ").toLowerCase();
+  return haystack.includes("deploy") || haystack.includes("release") || haystack.includes("publish");
+}
+function isGateJobName(jobId) {
+  const normalized = jobId.toLowerCase();
+  return normalized.includes("test") || normalized.includes("lint") || normalized.includes("build");
+}
+function parseErrorFinding(params) {
+  return {
+    id: parseErrorFindingId,
+    title: params.title,
+    severity: "high",
+    category: "config",
+    file: params.file,
+    evidence: params.errors,
+    recommendation: params.recommendation
+  };
+}
+function fileChangeFinding(params) {
+  return {
+    id: params.id,
+    title: params.title,
+    severity: params.severity,
+    category: "config",
+    file: params.file,
+    evidence: [params.evidence],
+    recommendation: params.recommendation
+  };
+}
+
 // src/providers/github-actions/normalize.ts
-function normalizeWorkflow(path2, raw, parsed) {
+function normalizeWorkflow(path3, raw, parsed) {
   const root = asRecord(parsed) ?? {};
   return {
-    path: path2,
+    path: path3,
     raw,
     parsed: root,
     name: stringValue(root.name),
@@ -9506,24 +9593,6 @@ function normalizeJobs(value) {
   }
   return jobs;
 }
-function stringList(value) {
-  if (typeof value === "string") {
-    return [value];
-  }
-  if (Array.isArray(value)) {
-    return value.filter((item) => typeof item === "string");
-  }
-  return [];
-}
-function asRecord(value) {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value;
-  }
-  return null;
-}
-function stringValue(value) {
-  return typeof value === "string" ? value : void 0;
-}
 function addTrigger(triggers, event, config) {
   const triggerConfig = asRecord(config) ?? {};
   triggers[event] = {
@@ -9622,9 +9691,9 @@ function diffWorkflows(baseWorkflows, headWorkflows) {
   const paths = [
     .../* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])
   ].sort();
-  for (const path2 of paths) {
-    const base = baseByPath.get(path2);
-    const head = headByPath.get(path2);
+  for (const path3 of paths) {
+    const base = baseByPath.get(path3);
+    const head = headByPath.get(path3);
     if (!head && base) {
       findings.push(workflowRemovedFinding(base));
       continue;
@@ -10394,26 +10463,24 @@ function triggerFindingDetails(event) {
   };
 }
 function workflowAddedFinding(workflow) {
-  return {
+  return fileChangeFinding({
     id: "workflow-added",
     title: "Workflow file added",
     severity: "medium",
-    category: "config",
     file: workflow.path,
-    evidence: [`New workflow file detected: ${workflow.path}`],
+    evidence: `New workflow file detected: ${workflow.path}`,
     recommendation: "Review new workflow triggers and permissions before merge."
-  };
+  });
 }
 function workflowRemovedFinding(workflow) {
-  return {
+  return fileChangeFinding({
     id: "workflow-removed",
     title: "Workflow file removed",
     severity: "medium",
-    category: "config",
     file: workflow.path,
-    evidence: [`Workflow file removed: ${workflow.path}`],
+    evidence: `Workflow file removed: ${workflow.path}`,
     recommendation: "Ensure the removal is intentional and does not break required checks."
-  };
+  });
 }
 function byPath(workflows) {
   return new Map(workflows.map((workflow) => [workflow.path, workflow]));
@@ -10547,31 +10614,8 @@ function pathFilterRemovedFinding(file, event, filterName) {
     recommendation: "Confirm the workflow should run for the broader set of changed files."
   };
 }
-function sameStringSet(a, b) {
-  return a.length === b.length && a.every((value) => b.includes(value));
-}
-function formatList(values) {
-  if (values.length === 0) {
-    return "`<all>`";
-  }
-  return values.map((value) => `\`${value}\``).join(", ");
-}
-function imageUsesLatest(image) {
-  return image.endsWith(":latest") || !image.includes(":");
-}
-function isPrivilegedService(image, options) {
-  return image?.toLowerCase() === "docker:dind" || options?.toLowerCase().includes("privileged") === true;
-}
-function isProductionEnvironment(environment) {
-  return /^prod(uction)?$/i.test(environment);
-}
 function isDeployJob(jobId, job) {
-  const haystack = `${jobId} ${job.name ?? ""}`.toLowerCase();
-  return haystack.includes("deploy") || haystack.includes("release") || haystack.includes("publish");
-}
-function isGateJobName(jobId) {
-  const normalized = jobId.toLowerCase();
-  return normalized.includes("test") || normalized.includes("lint") || normalized.includes("build");
+  return isDeployLikeName(jobId, job.name);
 }
 
 // src/providers/github-actions/adapter.ts
@@ -10588,15 +10632,14 @@ var GitHubActionsAdapter = class {
     for (const file of files) {
       const doc = (0, import_yaml.parseDocument)(file.content);
       if (doc.errors.length > 0) {
-        parseFindings.push({
-          id: "workflow-parse-error",
-          title: "Workflow parse error",
-          severity: "high",
-          category: "config",
-          file: file.path,
-          evidence: doc.errors.map((err) => err.message),
-          recommendation: "Fix invalid workflow syntax before relying on CI Delta results."
-        });
+        parseFindings.push(
+          parseErrorFinding({
+            file: file.path,
+            title: "Workflow parse error",
+            errors: doc.errors.map((err) => err.message),
+            recommendation: "Fix invalid workflow syntax before relying on CI Delta results."
+          })
+        );
         continue;
       }
       workflows.push(normalizeWorkflow(file.path, file.content, doc.toJSON()));
@@ -10623,6 +10666,2898 @@ var GitHubActionsAdapter = class {
     ];
   }
 };
+
+// src/providers/gitlab-ci/normalize.ts
+var defaultStages = [".pre", "build", "test", "deploy", ".post"];
+function normalizePipeline(resolved) {
+  const { config } = resolved;
+  const originOf = (key) => resolved.origins.get(key) ?? resolved.rootPath;
+  const workflow = asRecord(config.workflow) ?? {};
+  const defaults2 = resolved.defaults;
+  const stages = normalizeStages(config.stages ?? config.types);
+  const jobs = {};
+  for (const job of resolved.jobs) {
+    jobs[job.id] = normalizeJob(job);
+  }
+  return {
+    rootPath: resolved.rootPath,
+    files: resolved.files,
+    workflowRules: workflow.rules === void 0 ? void 0 : normalizeRules(workflow.rules),
+    workflowFile: originOf("workflow"),
+    stages,
+    stagesFile: originOf(config.stages !== void 0 ? "stages" : "types"),
+    variables: normalizeVariables(config.variables),
+    variablesFile: originOf("variables"),
+    defaults: {
+      file: resolved.defaultsFile,
+      image: imageRef(defaults2.image),
+      services: normalizeServices2(defaults2.services),
+      tags: tagsRef(defaults2.tags),
+      idTokens: normalizeIdTokens(defaults2.id_tokens),
+      scripts: collectScripts(defaults2, /* @__PURE__ */ new Set())
+    },
+    jobs,
+    includes: resolved.includes,
+    problems: resolved.problems
+  };
+}
+function normalizeStages(value) {
+  const declared = stringList(value);
+  if (declared.length === 0) {
+    return defaultStages;
+  }
+  return [
+    ".pre",
+    ...declared.filter((stage) => stage !== ".pre" && stage !== ".post"),
+    ".post"
+  ];
+}
+function normalizeJob(resolved) {
+  const job = resolved.config;
+  const when = typeof job.when === "string" ? job.when : void 0;
+  const rules = job.rules === void 0 ? void 0 : normalizeRules(job.rules);
+  return {
+    id: resolved.id,
+    file: resolved.file,
+    extends: resolved.extends,
+    stage: typeof job.stage === "string" ? job.stage : "test",
+    when,
+    allowFailure: normalizeAllowFailure(job.allow_failure, when, rules),
+    rules: rules && rules.length > 0 ? rules : void 0,
+    only: normalizeOnlyExcept(job.only),
+    except: normalizeOnlyExcept(job.except),
+    needs: job.needs === void 0 ? void 0 : normalizeNeeds(job.needs),
+    trigger: normalizeTrigger(job.trigger),
+    environment: normalizeEnvironment2(job.environment),
+    resourceGroup: typeof job.resource_group === "string" && job.resource_group.trim() ? job.resource_group.trim() : void 0,
+    secrets: normalizeSecrets(job.secrets),
+    image: imageRef(job.image),
+    services: normalizeServices2(job.services),
+    tags: tagsRef(job.tags),
+    idTokens: normalizeIdTokens(job.id_tokens),
+    variables: normalizeVariables(job.variables),
+    scripts: collectScripts(job, resolved.inherited),
+    inherited: resolved.inherited
+  };
+}
+function normalizeAllowFailure(value, when, rules) {
+  if (value === true) {
+    return "true";
+  }
+  if (value === false) {
+    return "false";
+  }
+  if (asRecord(value)) {
+    return "exit_codes";
+  }
+  return when === "manual" && !rules ? "true" : "false";
+}
+function normalizeRules(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((entry) => {
+    const record = asRecord(entry);
+    if (!record) {
+      return [];
+    }
+    const changesRecord = asRecord(record.changes);
+    const changes = changesRecord ? stringList(changesRecord.paths) : stringList(record.changes);
+    const existsRecord = asRecord(record.exists);
+    const exists = existsRecord ? stringList(existsRecord.paths) : stringList(record.exists);
+    return [
+      {
+        ifClause: typeof record.if === "string" && record.if.trim() ? normalizeExpression(record.if) : void 0,
+        when: typeof record.when === "string" ? record.when : void 0,
+        changes: [...changes].sort(),
+        hasChanges: changes.length > 0 || changesRecord !== null,
+        compareTo: typeof changesRecord?.compare_to === "string" ? changesRecord.compare_to : void 0,
+        exists: [...exists].sort(),
+        hasExists: exists.length > 0 || existsRecord !== null
+      }
+    ];
+  });
+}
+function normalizeExpression(expression) {
+  return expression.trim().replace(/\s+/g, " ");
+}
+function normalizeOnlyExcept(value) {
+  if (value === void 0 || value === null) {
+    return void 0;
+  }
+  if (typeof value === "string" || Array.isArray(value)) {
+    return { refs: stringList(value), variables: [], changes: [] };
+  }
+  const record = asRecord(value);
+  if (!record) {
+    return void 0;
+  }
+  const changesRecord = asRecord(record.changes);
+  return {
+    refs: stringList(record.refs),
+    variables: stringList(record.variables).map(normalizeExpression),
+    changes: changesRecord ? stringList(changesRecord.paths) : stringList(record.changes),
+    kubernetes: typeof record.kubernetes === "string" ? record.kubernetes : void 0
+  };
+}
+function normalizeNeeds(value) {
+  const entries = Array.isArray(value) ? value : [value];
+  return entries.flatMap((entry) => {
+    if (typeof entry === "string" && entry.trim()) {
+      return [{ name: entry.trim(), optional: false }];
+    }
+    const record = asRecord(entry);
+    if (!record || typeof record.job !== "string") {
+      return [];
+    }
+    const prefix = typeof record.project === "string" ? `${record.project}:` : typeof record.pipeline === "string" ? `pipeline ${record.pipeline}:` : "";
+    return [
+      { name: `${prefix}${record.job}`, optional: record.optional === true }
+    ];
+  });
+}
+function normalizeTrigger(value) {
+  if (typeof value === "string" && value.trim()) {
+    return { project: value.trim(), include: [] };
+  }
+  const record = asRecord(value);
+  if (!record) {
+    return void 0;
+  }
+  const includes = record.include === void 0 ? [] : record.include;
+  return {
+    project: typeof record.project === "string" ? record.project : void 0,
+    branch: typeof record.branch === "string" ? record.branch : void 0,
+    include: (Array.isArray(includes) ? includes : [includes]).flatMap(
+      renderTriggerInclude
+    ),
+    strategy: typeof record.strategy === "string" ? record.strategy : void 0
+  };
+}
+function renderTriggerInclude(entry) {
+  if (typeof entry === "string") {
+    return [`local: ${entry}`];
+  }
+  const record = asRecord(entry);
+  if (!record) {
+    return [];
+  }
+  return [
+    Object.entries(record).filter(([key]) => key !== "inputs").map(
+      ([key, raw]) => `${key}: ${typeof raw === "string" ? raw : JSON.stringify(raw)}`
+    ).join(" ")
+  ];
+}
+function normalizeEnvironment2(value) {
+  if (typeof value === "string" && value.trim()) {
+    return { name: value.trim() };
+  }
+  const record = asRecord(value);
+  if (!record || typeof record.name !== "string" || !record.name.trim()) {
+    return void 0;
+  }
+  return {
+    name: record.name.trim(),
+    action: typeof record.action === "string" ? record.action : void 0,
+    deploymentTier: typeof record.deployment_tier === "string" ? record.deployment_tier : void 0
+  };
+}
+var secretProviders = [
+  "vault",
+  "azure_key_vault",
+  "gcp_secret_manager",
+  "aws_secrets_manager",
+  "akeyless",
+  "gitlab_secrets_manager"
+];
+function normalizeSecrets(value) {
+  const record = asRecord(value);
+  if (!record) {
+    return [];
+  }
+  return Object.entries(record).map(([name, raw]) => ({
+    name,
+    source: describeSecretSource(raw)
+  }));
+}
+function describeSecretSource(value) {
+  const record = asRecord(value);
+  if (!record) {
+    return "unknown source";
+  }
+  for (const provider of secretProviders) {
+    const config = record[provider];
+    if (config === void 0) {
+      continue;
+    }
+    if (typeof config === "string") {
+      return `${provider}: ${config}`;
+    }
+    const details = asRecord(config);
+    if (!details) {
+      return provider;
+    }
+    const engine = asRecord(details.engine);
+    const parts = [
+      engine && typeof engine.path === "string" ? `${engine.path}/` : "",
+      typeof details.path === "string" ? details.path : "",
+      typeof details.name === "string" ? details.name : "",
+      typeof details.field === "string" ? `#${details.field}` : "",
+      details.version !== void 0 ? `@${String(details.version)}` : ""
+    ].join("");
+    return parts ? `${provider}: ${parts}` : provider;
+  }
+  return "unknown source";
+}
+function normalizeVariables(value) {
+  const record = asRecord(value);
+  if (!record) {
+    return [];
+  }
+  return Object.entries(record).map(([name, raw]) => {
+    if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
+      return { name, valueText: String(raw) };
+    }
+    const variableValue = asRecord(raw)?.value;
+    return {
+      name,
+      valueText: typeof variableValue === "string" || typeof variableValue === "number" || typeof variableValue === "boolean" ? String(variableValue) : void 0
+    };
+  });
+}
+function normalizeServices2(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item, index) => {
+    if (typeof item === "string" && item.trim()) {
+      return [{ key: `image:${item}`, image: item.trim(), label: item.trim() }];
+    }
+    const record = asRecord(item);
+    if (!record) {
+      return [];
+    }
+    const name = typeof record.name === "string" ? record.name : void 0;
+    const alias = typeof record.alias === "string" ? record.alias : void 0;
+    const label = alias || name || `service ${index + 1}`;
+    const key = alias ? `alias:${alias}` : name ? `image:${name}` : `index:${index}`;
+    return [{ key, image: name, label }];
+  });
+}
+function normalizeIdTokens(value) {
+  const record = asRecord(value);
+  if (!record) {
+    return [];
+  }
+  return Object.entries(record).map(([name, raw]) => ({
+    name,
+    aud: formatAud(asRecord(raw)?.aud)
+  }));
+}
+function formatAud(value) {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+  const audiences = stringList(value).map((entry) => entry.trim()).filter(Boolean);
+  return audiences.length > 0 ? audiences.join(", ") : void 0;
+}
+var scriptKeys = ["before_script", "script", "after_script"];
+function collectScripts(source, inherited) {
+  const scripts = [];
+  for (const key of scriptKeys) {
+    for (const text of scriptLines(source[key])) {
+      scripts.push({ location: key, text, inherited: inherited.has(key) });
+    }
+  }
+  return scripts;
+}
+function scriptLines(value) {
+  if (typeof value === "string") {
+    return [value];
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return [String(value)];
+  }
+  const record = asRecord(value);
+  if (record) {
+    return Object.entries(record).map(
+      ([key, entry]) => `${key}: ${scriptLines(entry).join(" ")}`
+    );
+  }
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((entry) => scriptLines(entry));
+}
+function imageRef(value) {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+  const record = asRecord(value);
+  if (typeof record?.name === "string" && record.name.trim()) {
+    return record.name.trim();
+  }
+  return void 0;
+}
+function tagsRef(value) {
+  if (value === void 0 || value === null) {
+    return void 0;
+  }
+  return stringList(value);
+}
+function renderRule(rule) {
+  const parts = [];
+  if (rule.ifClause) {
+    parts.push(`if: ${rule.ifClause}`);
+  }
+  if (rule.hasChanges) {
+    parts.push(
+      rule.changes.length > 0 ? `changes: ${rule.changes.join(", ")}` : "changes"
+    );
+    if (rule.compareTo) {
+      parts.push(`compare_to: ${rule.compareTo}`);
+    }
+  }
+  if (rule.hasExists) {
+    parts.push(
+      rule.exists.length > 0 ? `exists: ${rule.exists.join(", ")}` : "exists"
+    );
+  }
+  if (rule.when) {
+    parts.push(`when: ${rule.when}`);
+  }
+  return parts.join("; ") || "unconditional";
+}
+function renderOnlyExcept(value) {
+  const parts = [];
+  if (value.refs.length > 0) {
+    parts.push(`refs: ${value.refs.join(", ")}`);
+  }
+  if (value.variables.length > 0) {
+    parts.push(`variables: ${value.variables.join(", ")}`);
+  }
+  if (value.changes.length > 0) {
+    parts.push(`changes: ${value.changes.join(", ")}`);
+  }
+  if (value.kubernetes) {
+    parts.push(`kubernetes: ${value.kubernetes}`);
+  }
+  return parts.join("; ") || "empty";
+}
+
+// src/providers/gitlab-ci/rules.ts
+var outcomeRank = {
+  never: 0,
+  manual: 1,
+  delayed: 2,
+  on_failure: 2,
+  on_success: 3,
+  always: 4
+};
+function outcomeRankOf(when) {
+  return outcomeRank[when] ?? 3;
+}
+function compareRules(params) {
+  const base = params.base.map(
+    (rule) => effective(rule, params.baseDefaultWhen)
+  );
+  const head = params.head.map(
+    (rule) => effective(rule, params.headDefaultWhen)
+  );
+  const result = { widened: [], changed: [] };
+  if (base.length === head.length && base.every((rule, index2) => rule.key === head[index2]?.key)) {
+    return result;
+  }
+  if (sameMultiset(base, head)) {
+    return compareReordered(params, base, head);
+  }
+  const ops = align(base, head);
+  let headCursor = 0;
+  let index = 0;
+  while (index < ops.length) {
+    const op = ops[index];
+    if (op?.type === "same") {
+      headCursor = op.head + 1;
+      index += 1;
+      continue;
+    }
+    const removed = [];
+    const inserted = [];
+    while (index < ops.length && ops[index]?.type !== "same") {
+      const gapOp = ops[index];
+      if (gapOp?.type === "removed") {
+        removed.push(gapOp.base);
+      } else if (gapOp?.type === "inserted") {
+        inserted.push(gapOp.head);
+      }
+      index += 1;
+    }
+    const pairs = Math.min(removed.length, inserted.length);
+    for (let pair = 0; pair < pairs; pair += 1) {
+      const baseRule = base[removed[pair] ?? -1];
+      const headIndex = inserted[pair] ?? -1;
+      const headRule = head[headIndex];
+      if (baseRule && headRule) {
+        compareModified(params, baseRule, headRule, headIndex, head, result);
+      }
+    }
+    for (const baseIndex of removed.slice(pairs)) {
+      const baseRule = base[baseIndex];
+      if (baseRule) {
+        compareRemoved(params, baseRule, head.slice(headCursor), result);
+      }
+    }
+    for (const headIndex of inserted.slice(pairs)) {
+      compareInserted(params, headIndex, head, result);
+    }
+    headCursor = (inserted[inserted.length - 1] ?? headCursor - 1) + 1;
+  }
+  if (result.widened.length === 0 && result.changed.length === 0) {
+    return result;
+  }
+  return dedupe(result);
+}
+function effective(rule, defaultWhen) {
+  const when = rule.when ?? defaultWhen;
+  const cond = JSON.stringify([
+    rule.ifClause ?? null,
+    rule.hasChanges ? rule.changes : null,
+    rule.compareTo ?? null,
+    rule.hasExists ? rule.exists : null
+  ]);
+  return { rule, when, cond, key: `${cond}|${when}` };
+}
+function isUnconditional(rule) {
+  return !rule.ifClause && !rule.hasChanges && !rule.hasExists;
+}
+function show(rule) {
+  return `\`${renderRule(rule.rule)}\``;
+}
+function compareReordered(params, base, head) {
+  const result = { widened: [], changed: [] };
+  const headPosition = /* @__PURE__ */ new Map();
+  head.forEach((rule, index) => {
+    if (!headPosition.has(rule.key)) {
+      headPosition.set(rule.key, index);
+    }
+  });
+  for (let earlier = 0; earlier < base.length; earlier += 1) {
+    for (let later = earlier + 1; later < base.length; later += 1) {
+      const first = base[earlier];
+      const second = base[later];
+      if (!first || !second || first.key === second.key) {
+        continue;
+      }
+      const firstHead = headPosition.get(first.key) ?? 0;
+      const secondHead = headPosition.get(second.key) ?? 0;
+      if (secondHead < firstHead && outcomeRankOf(second.when) > outcomeRankOf(first.when)) {
+        const what = first.when === "never" ? "deny rule" : `\`when: ${first.when}\` rule`;
+        result.widened.push(
+          `${params.label} now evaluates ${show(second)} before the ${what} ${show(first)}.`
+        );
+      }
+    }
+  }
+  if (result.widened.length === 0) {
+    result.changed.push(
+      `${params.label} reordered its rules from ${base.map(show).join(", ")} to ${head.map(show).join(", ")}.`
+    );
+  }
+  return result;
+}
+function compareRemoved(params, removed, following, result) {
+  const fallthrough = reachable(following).find(
+    (rule) => outcomeRankOf(rule.when) > outcomeRankOf(removed.when)
+  );
+  if (!fallthrough) {
+    return;
+  }
+  const what = removed.when === "never" ? `deny rule ${show(removed)}` : `rule ${show(removed)}`;
+  const outcome = fallthrough.rule.when ? "" : ` (\`when: ${fallthrough.when}\`)`;
+  result.widened.push(
+    `${params.label} removed ${what}; pipelines it matched can now fall through to ${show(fallthrough)}${outcome}.`
+  );
+}
+function compareInserted(params, headIndex, head, result) {
+  const rule = head[headIndex];
+  if (!rule || rule.when === "never") {
+    return;
+  }
+  const before = head.slice(0, headIndex);
+  if (before.some(
+    (candidate) => isUnconditional(candidate.rule) || candidate.cond === rule.cond
+  )) {
+    return;
+  }
+  const after = head.slice(headIndex + 1);
+  if (after.some(
+    (candidate) => candidate.cond === rule.cond && outcomeRankOf(candidate.when) >= outcomeRankOf(rule.when)
+  )) {
+    return;
+  }
+  if (isUnconditional(rule.rule)) {
+    result.widened.push(
+      `${params.label} added an unconditional rule (${show(rule)}).`
+    );
+    return;
+  }
+  const deny = after.find((candidate) => candidate.when === "never");
+  const position = deny ? ` ahead of deny rule ${show(deny)}` : "";
+  result.widened.push(
+    `${params.label} added rule ${show(rule)}${position}, which can run the ${params.subject}${rule.rule.when ? "" : ` (\`when: ${rule.when}\`)`}.`
+  );
+}
+function compareModified(params, base, head, headIndex, headRules, result) {
+  const before = headRules.slice(0, headIndex);
+  if (before.some((candidate) => isUnconditional(candidate.rule))) {
+    return;
+  }
+  const prefix = `${params.label} changed rule ${show(base)} to ${show(head)}`;
+  const widened = [];
+  const changed = [];
+  if (base.when === "never" && head.when === "never") {
+    compareDenyRules(base.rule, head.rule, widened, changed);
+  } else if (outcomeRankOf(head.when) > outcomeRankOf(base.when)) {
+    widened.push(`\`when\` went from \`${base.when}\` to \`${head.when}\``);
+  } else if (head.when !== base.when && head.when !== "never") {
+    changed.push(`\`when\` went from \`${base.when}\` to \`${head.when}\``);
+  }
+  if (head.when !== "never" && base.when !== "never") {
+    const ifResult = compareIf(base.rule.ifClause, head.rule.ifClause);
+    if (ifResult.kind === "widened") {
+      widened.push(ifResult.reason);
+    } else if (ifResult.kind === "changed") {
+      changed.push(ifResult.reason);
+    }
+    comparePaths(
+      "changes",
+      base.rule.hasChanges,
+      head.rule.hasChanges,
+      base.rule.changes,
+      head.rule.changes,
+      widened
+    );
+    comparePaths(
+      "exists",
+      base.rule.hasExists,
+      head.rule.hasExists,
+      base.rule.exists,
+      head.rule.exists,
+      widened
+    );
+    if (base.rule.hasChanges && head.rule.hasChanges && base.rule.compareTo !== head.rule.compareTo) {
+      changed.push(
+        `\`changes:compare_to\` went from \`${base.rule.compareTo ?? "default"}\` to \`${head.rule.compareTo ?? "default"}\``
+      );
+    }
+  } else if (head.when !== "never") {
+    const ifResult = compareIf(base.rule.ifClause, head.rule.ifClause);
+    if (ifResult.kind === "widened" || ifResult.kind === "changed") {
+      widened.push(ifResult.reason);
+    }
+  }
+  if (widened.length > 0) {
+    result.widened.push(`${prefix}: ${widened.join("; ")}.`);
+  } else if (changed.length > 0) {
+    result.changed.push(`${prefix}: ${changed.join("; ")}.`);
+  }
+}
+function compareDenyRules(base, head, widened, changed) {
+  const ifResult = compareIf(base.ifClause, head.ifClause);
+  if (ifResult.kind === "narrowed") {
+    widened.push("the deny rule's `if:` now matches fewer pipelines");
+  } else if (ifResult.kind === "changed") {
+    changed.push(ifResult.reason);
+  }
+  for (const [name, baseHas, headHas, basePaths, headPaths] of [
+    ["changes", base.hasChanges, head.hasChanges, base.changes, head.changes],
+    ["exists", base.hasExists, head.hasExists, base.exists, head.exists]
+  ]) {
+    if (!baseHas && headHas) {
+      widened.push(`the deny rule now only applies when \`${name}\` matches`);
+    } else if (baseHas && headHas) {
+      const dropped = basePaths.filter((entry) => !headPaths.includes(entry));
+      if (dropped.length > 0) {
+        widened.push(
+          `the deny rule's \`${name}\` no longer matches ${dropped.map(code).join(", ")}`
+        );
+      }
+    }
+  }
+}
+function comparePaths(name, baseHas, headHas, basePaths, headPaths, widened) {
+  if (baseHas && !headHas) {
+    widened.push(`the \`${name}\` guard was removed`);
+    return;
+  }
+  if (!baseHas || !headHas) {
+    return;
+  }
+  const added = headPaths.filter((entry) => !basePaths.includes(entry));
+  if (added.length > 0) {
+    widened.push(
+      `\`${name}\` now also matches ${added.map((entry) => `\`${entry}\``).join(", ")}`
+    );
+  }
+}
+function reachable(rules) {
+  const result = [];
+  for (const rule of rules) {
+    result.push(rule);
+    if (isUnconditional(rule.rule)) {
+      break;
+    }
+  }
+  return result;
+}
+function sameMultiset(base, head) {
+  if (base.length !== head.length) {
+    return false;
+  }
+  const left = base.map((rule) => rule.key).sort();
+  const right = head.map((rule) => rule.key).sort();
+  return left.every((key, index) => key === right[index]);
+}
+function align(base, head) {
+  const rows = base.length + 1;
+  const cols = head.length + 1;
+  const table = Array.from(
+    { length: rows },
+    () => new Array(cols).fill(0)
+  );
+  for (let i2 = base.length - 1; i2 >= 0; i2 -= 1) {
+    for (let j2 = head.length - 1; j2 >= 0; j2 -= 1) {
+      const row = table[i2];
+      row[j2] = base[i2]?.key === head[j2]?.key ? (table[i2 + 1]?.[j2 + 1] ?? 0) + 1 : Math.max(table[i2 + 1]?.[j2] ?? 0, row[j2 + 1] ?? 0);
+    }
+  }
+  const ops = [];
+  let i = 0;
+  let j = 0;
+  while (i < base.length && j < head.length) {
+    if (base[i]?.key === head[j]?.key) {
+      ops.push({ type: "same", base: i, head: j });
+      i += 1;
+      j += 1;
+    } else if ((table[i + 1]?.[j] ?? 0) >= (table[i]?.[j + 1] ?? 0)) {
+      ops.push({ type: "removed", base: i });
+      i += 1;
+    } else {
+      ops.push({ type: "inserted", head: j });
+      j += 1;
+    }
+  }
+  while (i < base.length) {
+    ops.push({ type: "removed", base: i });
+    i += 1;
+  }
+  while (j < head.length) {
+    ops.push({ type: "inserted", head: j });
+    j += 1;
+  }
+  return ops;
+}
+function dedupe(result) {
+  return {
+    widened: [...new Set(result.widened)],
+    changed: [...new Set(result.changed)]
+  };
+}
+function compareIf(base, head) {
+  if (base === head) {
+    return { kind: "same" };
+  }
+  if (base && !head) {
+    return {
+      kind: "widened",
+      reason: `the \`if: ${base}\` condition was removed`
+    };
+  }
+  if (!base || !head) {
+    return { kind: "narrowed" };
+  }
+  const baseOr = splitTopLevel(base, "||");
+  const headOr = splitTopLevel(head, "||");
+  if (strictSubset(baseOr, headOr)) {
+    const added = headOr.filter((entry) => !baseOr.includes(entry));
+    return {
+      kind: "widened",
+      reason: `\`if:\` gained the \`||\` alternative ${added.map(code).join(", ")}`
+    };
+  }
+  if (strictSubset(headOr, baseOr)) {
+    return { kind: "narrowed" };
+  }
+  if (baseOr.length === 1 && headOr.length === 1) {
+    const baseAnd = splitTopLevel(base, "&&");
+    const headAnd = splitTopLevel(head, "&&");
+    if (strictSubset(headAnd, baseAnd)) {
+      const dropped = baseAnd.filter((entry) => !headAnd.includes(entry));
+      return {
+        kind: "widened",
+        reason: `\`if:\` dropped the \`&&\` clause ${dropped.map(code).join(", ")}`
+      };
+    }
+    if (strictSubset(baseAnd, headAnd)) {
+      return { kind: "narrowed" };
+    }
+    const baseRest = baseAnd.filter((entry) => !headAnd.includes(entry));
+    const headRest = headAnd.filter((entry) => !baseAnd.includes(entry));
+    const relaxed = headRest.map((clause) => {
+      const variable = presenceVariable(clause);
+      return variable ? baseRest.find((candidate) => comparedVariable(candidate) === variable) : void 0;
+    });
+    if (headRest.length > 0 && headRest.length <= baseRest.length && relaxed.every(Boolean)) {
+      const pairs = headRest.map(
+        (clause, index) => `${code(relaxed[index] ?? "")} to ${code(clause)}`
+      );
+      return {
+        kind: "widened",
+        reason: `\`if:\` relaxed ${pairs.join(", ")}, which matches any non-empty value`
+      };
+    }
+  }
+  return {
+    kind: "changed",
+    reason: `\`if:\` changed from \`${base}\` to \`${head}\` and ci-delta cannot prove it is narrower`
+  };
+}
+function code(value) {
+  return `\`${value}\``;
+}
+function strictSubset(small, large) {
+  return small.length < large.length && small.every((entry) => large.includes(entry));
+}
+var variablePattern = /^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?$/;
+function presenceVariable(clause) {
+  return variablePattern.exec(clause)?.[1];
+}
+function comparedVariable(clause) {
+  const match2 = /^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?\s*(==|=~)/.exec(clause);
+  return match2?.[1];
+}
+function splitTopLevel(expression, operator) {
+  const parts = [];
+  const text = stripOuterParens(expression.trim());
+  let depth = 0;
+  let quote = null;
+  let inRegex = false;
+  let start = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    if (quote) {
+      if (char === "\\") {
+        index += 1;
+      } else if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (inRegex) {
+      if (char === "\\") {
+        index += 1;
+      } else if (char === "/") {
+        inRegex = false;
+      }
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === "/" && /[=!]~\s*$/.test(text.slice(0, index))) {
+      inRegex = true;
+    } else if (char === "(") {
+      depth += 1;
+    } else if (char === ")") {
+      depth -= 1;
+    } else if (depth === 0 && text.startsWith(operator, index)) {
+      parts.push(text.slice(start, index));
+      start = index + operator.length;
+      index += operator.length - 1;
+    }
+  }
+  parts.push(text.slice(start));
+  return parts.map((part) => stripOuterParens(part.trim()).replace(/\s+/g, " ")).filter(Boolean);
+}
+function stripOuterParens(value) {
+  let current = value.trim();
+  while (current.startsWith("(") && current.endsWith(")")) {
+    let depth = 0;
+    let wrapsAll = true;
+    for (let index = 0; index < current.length; index += 1) {
+      if (current[index] === "(") {
+        depth += 1;
+      } else if (current[index] === ")") {
+        depth -= 1;
+        if (depth === 0 && index < current.length - 1) {
+          wrapsAll = false;
+          break;
+        }
+      }
+    }
+    if (!wrapsAll) {
+      break;
+    }
+    current = current.slice(1, -1).trim();
+  }
+  return current;
+}
+
+// src/providers/gitlab-ci/secrets.ts
+var secretNamePattern = /(?:^|_)(?:TOKENS?|PASSWORDS?|PASSWD|PASS|SECRETS?|CREDENTIALS?|CREDS|JWT|APIKEY|PRIVATE_KEY|ACCESS_KEY)(?:_|$)|(?:^|_)KEYS?$/;
+var benignKeyNames = /(?:^|_)(?:CACHE|SORT|PARTITION|PRIMARY|FOREIGN|LOOKUP|ROUTING|IDEMPOTENCY|PUBLIC|GPG_PUBLIC)_KEYS?$/;
+var sensitivePredefined = /* @__PURE__ */ new Set([
+  "CI_JOB_TOKEN",
+  "CI_JOB_JWT",
+  "CI_JOB_JWT_V1",
+  "CI_JOB_JWT_V2",
+  "CI_REGISTRY_PASSWORD",
+  "CI_DEPLOY_PASSWORD",
+  "CI_DEPENDENCY_PROXY_PASSWORD",
+  "CI_REPOSITORY_URL"
+]);
+function isSecretLikeName(name) {
+  const upper = name.toUpperCase();
+  if (upper.startsWith("CI_")) {
+    return sensitivePredefined.has(upper);
+  }
+  return secretNamePattern.test(upper) && !benignKeyNames.test(upper);
+}
+function secretRefMatches(text) {
+  if (!text) {
+    return [];
+  }
+  const matches = [];
+  const referencePattern = /(?<!\$)\$(\{)?([A-Za-z_][A-Za-z0-9_]*)(\})?/g;
+  for (const match2 of text.matchAll(referencePattern)) {
+    const name = match2[2];
+    if (!name || !isSecretLikeName(name)) {
+      continue;
+    }
+    const braced = match2[1] === "{" && match2[3] === "}";
+    matches.push({
+      name,
+      display: braced ? `\${${name}}` : `$${name}`,
+      predefined: name.toUpperCase().startsWith("CI_")
+    });
+  }
+  return matches;
+}
+function newSecretRefs(before, after) {
+  const previous = new Set(secretRefMatches(before).map((ref) => ref.name));
+  const added = /* @__PURE__ */ new Map();
+  for (const ref of secretRefMatches(after)) {
+    if (!previous.has(ref.name) && !added.has(ref.name)) {
+      added.set(ref.name, ref);
+    }
+  }
+  return [...added.values()];
+}
+function formatRefs(refs) {
+  return refs.map((ref) => `\`${ref.display}\``).join(", ");
+}
+
+// src/providers/gitlab-ci/diff.ts
+var noneLabel = "`none`";
+function diffPipelines(base, head) {
+  return [
+    ...diffIncludes(base, head),
+    ...diffProblems(base, head),
+    ...diffWorkflowRules(base, head),
+    ...diffStages(base, head),
+    ...diffUndeclaredStages(base, head),
+    ...diffVariables({
+      file: head.variablesFile,
+      scope: "Variable",
+      base: base?.variables ?? [],
+      head: head.variables
+    }),
+    ...diffDefaults(base, head),
+    ...diffJobs(base, head)
+  ];
+}
+function diffIncludes(base, head) {
+  const findings = [];
+  const baseUnexpanded = new Set(
+    (base?.includes ?? []).filter((record) => record.notExpandedReason).map((record) => `${record.file}|${record.include.locator}`)
+  );
+  const baseRules = new Set(
+    (base?.includes ?? []).map(
+      (record) => `${record.file}|${record.include.locator}|${record.include.rules.join("\n")}`
+    )
+  );
+  for (const record of head.includes) {
+    const key = `${record.file}|${record.include.locator}`;
+    if (record.notExpandedReason && !baseUnexpanded.has(key)) {
+      findings.push({
+        id: "include-not-expanded",
+        title: "CI include was not expanded",
+        severity: "medium",
+        category: "config",
+        file: record.file,
+        evidence: [
+          `\`${record.include.locator}\``,
+          `Not expanded because ${record.notExpandedReason}.`
+        ],
+        recommendation: "ci-delta only expands local includes that exist at the same ref. Review the configuration this include brings in separately; jobs it defines are not part of this report."
+      });
+    }
+    if (record.include.rules.length > 0 && !baseRules.has(`${key}|${record.include.rules.join("\n")}`)) {
+      findings.push({
+        id: "include-rules-not-evaluated",
+        title: "Conditional include was not evaluated",
+        severity: "info",
+        category: "config",
+        file: record.file,
+        evidence: [
+          `\`${record.include.locator}\` has \`include:rules\`: ${formatList(record.include.rules, noneLabel)}.`,
+          record.include.kind === "local" && record.matched.length > 0 ? "ci-delta treats the include as always applied." : "The include itself was not expanded."
+        ],
+        recommendation: "Confirm the include conditions match the pipelines that should receive this configuration."
+      });
+    }
+  }
+  return findings;
+}
+function diffProblems(base, head) {
+  const known = new Set(
+    (base?.problems ?? []).map(
+      (problem) => `${problem.kind}|${problem.detail}`
+    )
+  );
+  const incomplete = head.includes.some((record) => record.notExpandedReason);
+  return head.problems.filter((problem) => !known.has(`${problem.kind}|${problem.detail}`)).map((problem) => {
+    const maybeExternal = incomplete && problem.kind !== "include-cycle";
+    const meta = {
+      extends: {
+        id: "extends-unresolved",
+        title: "Job extends could not be resolved"
+      },
+      reference: {
+        id: "reference-unresolved",
+        title: "!reference could not be resolved"
+      },
+      "include-cycle": {
+        id: "include-cycle",
+        title: "CI include cycle"
+      }
+    }[problem.kind];
+    return {
+      id: meta.id,
+      title: meta.title,
+      severity: maybeExternal ? "info" : "medium",
+      category: "config",
+      file: problem.file,
+      job: problem.job,
+      evidence: maybeExternal ? [
+        problem.detail,
+        "It may be defined in an include that ci-delta did not expand; findings for this job do not include that configuration."
+      ] : [problem.detail],
+      recommendation: maybeExternal ? "Review the job together with the configuration from the unexpanded include." : "GitLab rejects or ignores configuration it cannot resolve. Fix the reference so the effective job configuration is what you expect."
+    };
+  });
+}
+function diffWorkflowRules(base, head) {
+  if (!base) {
+    return [];
+  }
+  return diffRuleLists({
+    file: head.workflowFile,
+    label: "Workflow",
+    subject: "pipeline",
+    idPrefix: "workflow-rules",
+    titlePrefix: "Workflow rules",
+    sensitive: true,
+    base: base.workflowRules,
+    head: head.workflowRules,
+    baseDefaultWhen: "always",
+    headDefaultWhen: "always"
+  });
+}
+function diffStages(base, head) {
+  if (!base || base.stages.join("\n") === head.stages.join("\n")) {
+    return [];
+  }
+  const removed = base.stages.filter((stage) => !head.stages.includes(stage));
+  const added = head.stages.filter((stage) => !base.stages.includes(stage));
+  const evidence = [
+    `Stages changed from ${formatList(base.stages)} to ${formatList(head.stages)}.`
+  ];
+  if (removed.length > 0) {
+    evidence.push(`Removed stages: ${formatList(removed)}.`);
+  }
+  if (added.length > 0) {
+    evidence.push(`Added stages: ${formatList(added)}.`);
+  }
+  return [
+    {
+      id: "stages-changed",
+      title: "Pipeline stages changed",
+      severity: "info",
+      category: "workflow-graph",
+      file: head.stagesFile,
+      before: base.stages,
+      after: head.stages,
+      evidence,
+      recommendation: "Stage order decides which jobs wait for which. Confirm validation stages still run before deploy stages."
+    }
+  ];
+}
+function diffDefaults(base, head) {
+  const file = head.defaults.file;
+  const scope = "Default";
+  return [
+    ...diffImage(
+      file,
+      void 0,
+      scope,
+      base?.defaults.image,
+      head.defaults.image
+    ),
+    ...diffServices(
+      file,
+      void 0,
+      scope,
+      base?.defaults.services ?? [],
+      head.defaults.services
+    ),
+    ...diffTags(
+      file,
+      void 0,
+      scope,
+      base?.defaults.tags,
+      head.defaults.tags
+    ),
+    ...diffIdTokens(
+      file,
+      void 0,
+      scope,
+      base?.defaults.idTokens ?? [],
+      head.defaults.idTokens
+    ),
+    ...diffScripts(
+      file,
+      void 0,
+      scope,
+      base?.defaults.scripts ?? [],
+      head.defaults.scripts
+    )
+  ];
+}
+function diffJobs(base, head) {
+  const findings = [];
+  const baseJobs = base?.jobs ?? {};
+  const jobIds = [
+    .../* @__PURE__ */ new Set([...Object.keys(baseJobs), ...Object.keys(head.jobs)])
+  ].sort();
+  for (const jobId of jobIds) {
+    const baseJob = baseJobs[jobId];
+    const headJob = head.jobs[jobId];
+    if (baseJob && !headJob) {
+      findings.push({
+        id: "job-removed",
+        title: "CI job removed",
+        severity: "medium",
+        category: "workflow-graph",
+        file: baseJob.file,
+        job: jobId,
+        evidence: [`Job \`${jobId}\` was removed.`],
+        recommendation: "Confirm the removed job is no longer required by pipeline gates or merge request approval rules."
+      });
+      continue;
+    }
+    if (!headJob) {
+      continue;
+    }
+    if (!baseJob) {
+      findings.push({
+        id: "job-added",
+        title: "CI job added",
+        severity: isSensitiveJob(headJob) ? "medium" : "low",
+        category: "workflow-graph",
+        file: headJob.file,
+        job: jobId,
+        evidence: [`Job \`${jobId}\` was added.`],
+        recommendation: "Confirm the new job's rules, image, runner tags, environment, and secrets are intentional."
+      });
+    }
+    findings.push(...diffJob(base, head, baseJob, headJob));
+  }
+  return findings;
+}
+function diffJob(basePipeline, headPipeline, base, head) {
+  const file = head.file;
+  const scope = `Job \`${head.id}\``;
+  const inheritedBoth = (key) => head.inherited.has(key) && (!base || base.inherited.has(key));
+  return [
+    ...base ? diffJobConditions(base, head) : [],
+    ...base ? diffManualGate(base, head) : [],
+    ...base ? diffWhen(base, head) : [],
+    ...base ? diffAllowFailure(base, head) : [],
+    ...base && basePipeline ? diffDependencies(basePipeline, headPipeline, base, head) : [],
+    ...diffTrigger(base, head),
+    ...diffEnvironment(base, head),
+    ...diffResourceGroup(base, head),
+    ...diffSecretsKeyword(base, head),
+    ...diffVariables({
+      file,
+      job: head.id,
+      scope: `${scope} variable`,
+      base: base?.variables ?? [],
+      head: head.variables
+    }),
+    ...inheritedBoth("image") ? [] : diffImage(file, head.id, scope, base?.image, head.image),
+    ...inheritedBoth("services") ? [] : diffServices(
+      file,
+      head.id,
+      scope,
+      base?.services ?? [],
+      head.services
+    ),
+    ...inheritedBoth("tags") ? [] : diffTags(file, head.id, scope, base?.tags, head.tags),
+    ...inheritedBoth("id_tokens") ? [] : diffIdTokens(
+      file,
+      head.id,
+      scope,
+      base?.idTokens ?? [],
+      head.idTokens
+    ),
+    ...diffScripts(
+      file,
+      head.id,
+      scope,
+      base?.scripts ?? [],
+      head.scripts.filter((script) => !script.inherited)
+    ),
+    ...diffExtends(base, head)
+  ];
+}
+function isSensitiveJob(job) {
+  return isDeployLikeName(job.id) || job.environment !== void 0 || job.secrets.length > 0 || job.idTokens.length > 0 || job.trigger !== void 0 || job.resourceGroup !== void 0;
+}
+function isProduction(environment) {
+  if (!environment) {
+    return false;
+  }
+  if (environment.deploymentTier) {
+    return environment.deploymentTier.toLowerCase() === "production";
+  }
+  const firstSegment = environment.name.split("/")[0] ?? environment.name;
+  return isProductionEnvironment(environment.name) || isProductionEnvironment(firstSegment);
+}
+function diffJobConditions(base, head) {
+  const sensitive = isSensitiveJob(base) || isSensitiveJob(head);
+  const label = `Job \`${head.id}\``;
+  const baseKind = conditionKind(base);
+  const headKind = conditionKind(head);
+  if (baseKind === "rules" && headKind === "rules") {
+    return diffRuleLists({
+      file: head.file,
+      job: head.id,
+      label,
+      subject: "job",
+      idPrefix: "job-rules",
+      titlePrefix: "Job rules",
+      sensitive,
+      base: base.rules,
+      head: head.rules,
+      baseDefaultWhen: base.when ?? "on_success",
+      headDefaultWhen: head.when ?? "on_success"
+    });
+  }
+  if (baseKind === "none") {
+    return [];
+  }
+  const before = renderConditions(base);
+  const after = renderConditions(head);
+  if (headKind === "none") {
+    if (baseKind === "rules" && !(base.rules ?? []).some(isRestrictiveRule)) {
+      return [];
+    }
+    return [
+      conditionFinding({
+        kind: "removed",
+        job: head,
+        sensitive,
+        before,
+        after,
+        evidence: [
+          `${label} removed its ${baseKind === "rules" ? "`rules`" : "`only`/`except`"} conditions. Previous conditions: ${formatList(before, noneLabel)}.`
+        ]
+      })
+    ];
+  }
+  if (baseKind === "only" && headKind === "only") {
+    const widened = compareOnlyExcept(label, base, head);
+    return widened.length > 0 ? [
+      conditionFinding({
+        kind: "widened",
+        job: head,
+        sensitive,
+        before,
+        after,
+        evidence: widened
+      })
+    ] : [];
+  }
+  return [
+    conditionFinding({
+      kind: "changed",
+      job: head,
+      sensitive,
+      before,
+      after,
+      evidence: [
+        `${label} switched from ${formatList(before, noneLabel)} to ${formatList(after, noneLabel)}. ci-delta cannot prove the new conditions are narrower.`
+      ]
+    })
+  ];
+}
+function conditionKind(job) {
+  if (job.rules) {
+    return "rules";
+  }
+  return job.only || job.except ? "only" : "none";
+}
+function renderConditions(job) {
+  if (job.rules) {
+    return job.rules.map((rule) => renderRule(rule));
+  }
+  return [
+    ...job.only ? [`only: ${renderOnlyExcept(job.only)}`] : [],
+    ...job.except ? [`except: ${renderOnlyExcept(job.except)}`] : []
+  ];
+}
+function isRestrictiveRule(rule) {
+  return Boolean(rule.ifClause) || rule.hasChanges || rule.hasExists || rule.when === "never";
+}
+function compareOnlyExcept(label, base, head) {
+  const evidence = [];
+  if (base.only && !head.only) {
+    evidence.push(
+      `${label} removed \`only\` (${renderOnlyExcept(base.only)}).`
+    );
+  } else if (base.only && head.only) {
+    for (const field of ["refs", "variables", "changes"]) {
+      const before = base.only[field];
+      const after = head.only[field];
+      if (before.length > 0 && after.length === 0) {
+        evidence.push(
+          `${label} removed \`only:${field}\` (${formatList(before)}).`
+        );
+        continue;
+      }
+      const added = after.filter((entry) => !before.includes(entry));
+      if (before.length > 0 && added.length > 0) {
+        evidence.push(
+          `${label} \`only:${field}\` now also matches ${formatList(added)}.`
+        );
+      }
+    }
+    if (base.only.kubernetes && !head.only.kubernetes) {
+      evidence.push(`${label} removed \`only:kubernetes\`.`);
+    }
+  }
+  if (base.except && !head.except) {
+    evidence.push(
+      `${label} removed \`except\` (${renderOnlyExcept(base.except)}).`
+    );
+  } else if (base.except && head.except) {
+    for (const field of ["refs", "variables", "changes"]) {
+      const removed = exceptRemoved(base.except, head.except, field);
+      if (removed.length > 0) {
+        evidence.push(
+          `${label} \`except:${field}\` no longer excludes ${formatList(removed)}.`
+        );
+      }
+    }
+  }
+  return evidence;
+}
+function exceptRemoved(base, head, field) {
+  return base[field].filter((entry) => !head[field].includes(entry));
+}
+function diffRuleLists(params) {
+  const baseRules = params.base ?? [];
+  const headRules = params.head ?? [];
+  const before = baseRules.map((rule) => renderRule(rule));
+  const after = headRules.map((rule) => renderRule(rule));
+  const severity = (kind) => {
+    if (kind === "changed") {
+      return params.sensitive ? "medium" : "low";
+    }
+    return params.sensitive ? "high" : "medium";
+  };
+  const finding = (kind, evidence) => ({
+    id: `${params.idPrefix}-${kind}`,
+    title: {
+      removed: `${params.titlePrefix} removed`,
+      widened: `${params.titlePrefix} match more broadly`,
+      changed: `${params.titlePrefix} changed`
+    }[kind],
+    severity: severity(kind),
+    category: "trigger",
+    file: params.file,
+    job: params.job,
+    before,
+    after,
+    evidence,
+    recommendation: {
+      removed: "Removing rules drops the previous gate. Confirm the job or pipeline should run under GitLab's default behavior. ci-delta does not evaluate rule expressions.",
+      widened: "Confirm this broader rule match is intentional, for example that it does not run in merge request pipelines from forks or on unprotected branches. ci-delta does not evaluate rule expressions.",
+      changed: "Review the new rules by hand. ci-delta could not prove that they match the same or fewer pipelines."
+    }[kind]
+  });
+  if (baseRules.length === 0) {
+    return [];
+  }
+  if (headRules.length === 0) {
+    if (!baseRules.some(isRestrictiveRule)) {
+      return [];
+    }
+    return [
+      finding("removed", [
+        `${params.label} rules were removed. Previous rules: ${formatList(before, noneLabel)}.`
+      ])
+    ];
+  }
+  const comparison = compareRules({
+    label: params.label,
+    subject: params.subject,
+    base: baseRules,
+    head: headRules,
+    baseDefaultWhen: params.baseDefaultWhen,
+    headDefaultWhen: params.headDefaultWhen
+  });
+  if (comparison.widened.length > 0) {
+    return [finding("widened", [...comparison.widened, ...comparison.changed])];
+  }
+  if (comparison.changed.length > 0) {
+    return [finding("changed", comparison.changed)];
+  }
+  return [];
+}
+function conditionFinding(params) {
+  const severity = params.kind === "changed" ? params.sensitive ? "medium" : "low" : params.sensitive ? "high" : "medium";
+  return {
+    id: `job-rules-${params.kind}`,
+    title: {
+      removed: "Job rules removed",
+      widened: "Job rules match more broadly",
+      changed: "Job rules changed"
+    }[params.kind],
+    severity,
+    category: "trigger",
+    file: params.job.file,
+    job: params.job.id,
+    before: params.before,
+    after: params.after,
+    evidence: params.evidence,
+    recommendation: params.kind === "changed" ? "Review the new job conditions by hand. ci-delta could not prove that they match the same or fewer pipelines." : "Confirm the job should run in the broader set of pipelines, for example merge request pipelines from forks or unprotected branches."
+  };
+}
+function manualStatus(job) {
+  if (job.rules) {
+    const outcomes = job.rules.map((rule) => rule.when ?? job.when ?? "on_success").filter((when) => when !== "never");
+    const manual = outcomes.filter((when) => when === "manual").length;
+    if (manual === 0) {
+      return "none";
+    }
+    return manual === outcomes.length ? "all" : "some";
+  }
+  return job.when === "manual" ? "all" : "none";
+}
+function diffManualGate(base, head) {
+  const rank = { none: 0, some: 1, all: 2 };
+  const before = manualStatus(base);
+  const after = manualStatus(head);
+  if (rank[after] >= rank[before]) {
+    return [];
+  }
+  const sensitive = isSensitiveJob(base) || isSensitiveJob(head);
+  const describe = (job, status) => {
+    if (!job.rules) {
+      return `\`when: ${job.when ?? "on_success"}\``;
+    }
+    return status === "all" ? "manual for every matching rule" : status === "some" ? "manual for some rules" : "automatic for every matching rule";
+  };
+  return [
+    {
+      id: "manual-gate-removed",
+      title: "Manual approval gate removed",
+      severity: sensitive ? "high" : "medium",
+      category: "deployment",
+      file: head.file,
+      job: head.id,
+      before: describe(base, before),
+      after: describe(head, after),
+      evidence: [
+        `Job \`${head.id}\` was ${describe(base, before)} and is now ${describe(head, after)}.`,
+        ...head.environment ? [`The job deploys to environment \`${head.environment.name}\`.`] : []
+      ],
+      recommendation: "A manual job is a human approval step. Confirm this job should now start without someone pressing play, or keep `when: manual` and use a protected environment."
+    }
+  ];
+}
+function diffWhen(base, head) {
+  const before = base.when ?? "on_success";
+  const after = head.when ?? "on_success";
+  if (before === after || before === "manual" || after === "manual") {
+    return [];
+  }
+  const sensitive = isSensitiveJob(base) || isSensitiveJob(head);
+  const widening = outcomeRankOf(after) > outcomeRankOf(before);
+  return [
+    {
+      id: "job-when-changed",
+      title: "Job when changed",
+      severity: widening && sensitive ? "medium" : "low",
+      category: "workflow-graph",
+      file: head.file,
+      job: head.id,
+      before,
+      after,
+      evidence: [
+        `Job \`${head.id}\` changed from \`when: ${before}\` to \`when: ${after}\`.`,
+        ...after === "always" ? ["`when: always` runs the job even when earlier stages fail."] : []
+      ],
+      recommendation: "Confirm the job should run under the new condition relative to earlier stages."
+    }
+  ];
+}
+function diffAllowFailure(base, head) {
+  if (base.allowFailure !== "false" || head.allowFailure === "false") {
+    return [];
+  }
+  const gate = isGateJobName(head.id) || /scan|audit|check|sast|security/i.test(head.id) || isSensitiveJob(head);
+  return [
+    {
+      id: "allow-failure-enabled",
+      title: "Job failures no longer block the pipeline",
+      severity: gate ? "medium" : "low",
+      category: "workflow-graph",
+      file: head.file,
+      job: head.id,
+      before: "allow_failure: false",
+      after: head.allowFailure === "exit_codes" ? "allow_failure: exit_codes" : "allow_failure: true",
+      evidence: [
+        `Job \`${head.id}\` changed from \`allow_failure: false\` to \`${head.allowFailure === "exit_codes" ? "allow_failure: exit_codes" : "allow_failure: true"}\`${head.allowFailure === "true" && head.when === "manual" && !head.rules ? " (the default for manual jobs)" : ""}.`,
+        head.when === "manual" ? "A non-blocking manual job no longer holds later stages until someone runs it." : "A failure in this job no longer stops later stages or marks the pipeline as failed."
+      ],
+      recommendation: "Keep validation and deploy jobs blocking unless a failure is genuinely safe to ignore."
+    }
+  ];
+}
+function dependencies(pipeline, job) {
+  if (job.needs) {
+    return { names: job.needs.map((need) => need.name), explicit: true };
+  }
+  const stageIndex = pipeline.stages.indexOf(job.stage);
+  if (stageIndex < 0) {
+    return { names: [], explicit: false };
+  }
+  const names = Object.values(pipeline.jobs).filter((candidate) => {
+    const candidateStage = pipeline.stages.indexOf(candidate.stage);
+    return candidateStage >= 0 && candidateStage < stageIndex;
+  }).map((candidate) => candidate.id).sort();
+  return { names, explicit: false };
+}
+function describeDependencies(pipeline, job) {
+  if (job.needs) {
+    return job.needs.length === 0 ? "`needs: []` (starts immediately)" : `\`needs\`: ${formatList(job.needs.map((need) => need.name))}`;
+  }
+  return pipeline.stages.includes(job.stage) ? `stage ordering (stage \`${job.stage}\`)` : `stage \`${job.stage}\`, which is not declared in \`stages\``;
+}
+function diffDependencies(basePipeline, headPipeline, base, head) {
+  const findings = [];
+  const before = dependencies(basePipeline, base);
+  const after = dependencies(headPipeline, head);
+  const removed = before.names.filter(
+    (name) => !after.names.includes(name) && (before.explicit || name in headPipeline.jobs)
+  );
+  if (removed.length > 0) {
+    const evidence = [
+      `Job \`${head.id}\` no longer waits for ${formatList(removed)}.`,
+      `Before: ${describeDependencies(basePipeline, base)}. After: ${describeDependencies(headPipeline, head)}.`
+    ];
+    findings.push({
+      id: "job-dependency-removed",
+      title: "Job dependency removed",
+      severity: "medium",
+      category: "workflow-graph",
+      file: head.file,
+      job: head.id,
+      before: before.names,
+      after: after.names,
+      evidence,
+      recommendation: "Confirm removing this dependency does not bypass validation or build gates."
+    });
+    const gates = removed.filter((name) => isGateJobName(name));
+    if (gates.length > 0 && (isDeployLikeName(head.id) || head.environment !== void 0)) {
+      findings.push({
+        id: "possible-deploy-gate-removed",
+        title: "Possible deploy gate removed",
+        severity: "high",
+        category: "workflow-graph",
+        file: head.file,
+        job: head.id,
+        before: before.names,
+        after: after.names,
+        evidence: [
+          `Deploy-like job \`${head.id}\` no longer depends on ${formatList(gates)}.`
+        ],
+        recommendation: "Keep deploy and release jobs dependent on test, lint, or build jobs unless the gate moved elsewhere."
+      });
+    }
+  }
+  if (before.explicit && after.explicit) {
+    const added = after.names.filter((name) => !before.names.includes(name));
+    if (added.length > 0) {
+      findings.push({
+        id: "job-dependency-added",
+        title: "Job dependency added",
+        severity: "info",
+        category: "workflow-graph",
+        file: head.file,
+        job: head.id,
+        before: before.names,
+        after: after.names,
+        evidence: [`Job \`${head.id}\` now needs ${formatList(added)}.`],
+        recommendation: "Confirm the new dependency order matches the intended pipeline graph."
+      });
+    }
+  }
+  return findings;
+}
+function diffUndeclaredStages(base, head) {
+  const byFile = /* @__PURE__ */ new Map();
+  for (const job of Object.values(head.jobs)) {
+    if (head.stages.includes(job.stage)) {
+      continue;
+    }
+    const baseJob = base?.jobs[job.id];
+    if (baseJob && base && !base.stages.includes(baseJob.stage)) {
+      continue;
+    }
+    byFile.set(job.file, [...byFile.get(job.file) ?? [], job]);
+  }
+  return [...byFile.entries()].map(([file, jobs]) => ({
+    id: "job-stage-undefined",
+    title: "Jobs use an undeclared stage",
+    severity: "medium",
+    category: "config",
+    file,
+    job: jobs.length === 1 ? jobs[0]?.id : void 0,
+    after: jobs.map((job) => `${job.id}: ${job.stage}`),
+    evidence: [
+      ...jobs.map((job) => `Job \`${job.id}\` uses stage \`${job.stage}\`.`),
+      `Declared stages: ${formatList(head.stages)}.`
+    ],
+    recommendation: "GitLab rejects pipelines whose jobs use an undeclared stage. Add the stage back or move the jobs."
+  }));
+}
+function describeTrigger(trigger) {
+  const parts = [];
+  if (trigger.project) {
+    parts.push(`project: ${trigger.project}`);
+  }
+  if (trigger.branch) {
+    parts.push(`branch: ${trigger.branch}`);
+  }
+  if (trigger.include.length > 0) {
+    parts.push(`include: ${trigger.include.join(", ")}`);
+  }
+  return parts.join("; ") || "downstream pipeline";
+}
+function diffTrigger(base, head) {
+  const before = base?.trigger;
+  const after = head.trigger;
+  if (!after) {
+    return [];
+  }
+  const findings = [];
+  const notAnalyzed = "ci-delta does not analyze the downstream pipeline configuration.";
+  if (!before) {
+    findings.push({
+      id: "trigger-added",
+      title: "Downstream pipeline trigger added",
+      severity: "medium",
+      category: "workflow-graph",
+      file: head.file,
+      job: head.id,
+      after: describeTrigger(after),
+      evidence: [
+        `Job \`${head.id}\` now triggers \`${describeTrigger(after)}\`.`,
+        notAnalyzed
+      ],
+      recommendation: "Review the downstream pipeline configuration; it runs with this pipeline's context and can be a separate deploy path."
+    });
+    return findings;
+  }
+  if (describeTrigger(before) !== describeTrigger(after)) {
+    findings.push({
+      id: "trigger-changed",
+      title: "Downstream pipeline target changed",
+      severity: "high",
+      category: "workflow-graph",
+      file: head.file,
+      job: head.id,
+      before: describeTrigger(before),
+      after: describeTrigger(after),
+      evidence: [
+        `Job \`${head.id}\` trigger changed from \`${describeTrigger(before)}\` to \`${describeTrigger(after)}\`.`,
+        notAnalyzed
+      ],
+      recommendation: "Review the new downstream configuration or project. A changed child pipeline file swaps out every job it runs."
+    });
+  }
+  if (before.strategy === "depend" && after.strategy !== "depend") {
+    findings.push({
+      id: "trigger-strategy-removed",
+      title: "Downstream pipeline no longer gates this pipeline",
+      severity: "medium",
+      category: "workflow-graph",
+      file: head.file,
+      job: head.id,
+      before: "strategy: depend",
+      after: after.strategy ? `strategy: ${after.strategy}` : void 0,
+      evidence: [
+        `Job \`${head.id}\` removed \`strategy: depend\`, so it succeeds as soon as the downstream pipeline is created.`
+      ],
+      recommendation: "Keep `strategy: depend` when later jobs rely on the downstream pipeline passing."
+    });
+  }
+  return findings;
+}
+function describeEnvironment(environment) {
+  return environment.deploymentTier ? `${environment.name} (tier: ${environment.deploymentTier})` : environment.name;
+}
+function diffEnvironment(base, head) {
+  const before = base?.environment;
+  const after = head.environment;
+  if (before && !after) {
+    const production2 = isProduction(before);
+    return [
+      {
+        id: "deployment-environment-removed",
+        title: "Deployment environment removed",
+        severity: production2 ? "high" : "medium",
+        category: "deployment",
+        file: head.file,
+        job: head.id,
+        before: describeEnvironment(before),
+        evidence: [
+          `Job \`${head.id}\` no longer declares environment \`${describeEnvironment(before)}\`.`
+        ],
+        recommendation: "Protected environment approvals, deployment tracking, and environment-scoped variables no longer apply to this job. Confirm that is intentional."
+      }
+    ];
+  }
+  if (!after) {
+    return [];
+  }
+  if (before && describeEnvironment(before) === describeEnvironment(after)) {
+    return [];
+  }
+  const production = isProduction(after);
+  const wasProduction = isProduction(before);
+  if (production && wasProduction) {
+    return [
+      {
+        id: "deployment-environment-changed",
+        title: "Deployment environment changed",
+        severity: "medium",
+        category: "deployment",
+        file: head.file,
+        job: head.id,
+        before: before ? describeEnvironment(before) : void 0,
+        after: describeEnvironment(after),
+        evidence: [
+          `Job \`${head.id}\` environment changed from \`${before ? describeEnvironment(before) : "none"}\` to \`${describeEnvironment(after)}\`.`
+        ],
+        recommendation: "Confirm the new production environment has the same protection rules and approvals."
+      }
+    ];
+  }
+  return [
+    {
+      id: production ? "deployment-production-added" : before ? "deployment-environment-changed" : "deployment-environment-added",
+      title: production ? "Production deployment environment added" : before ? "Deployment environment changed" : "Deployment environment added",
+      severity: production && before ? "critical" : production ? "high" : "medium",
+      category: "deployment",
+      file: head.file,
+      job: head.id,
+      before: before ? describeEnvironment(before) : void 0,
+      after: describeEnvironment(after),
+      evidence: [
+        `Job \`${head.id}\` environment changed from \`${before ? describeEnvironment(before) : "none"}\` to \`${describeEnvironment(after)}\`.`
+      ],
+      recommendation: production ? "Confirm the production environment is protected and requires the intended approvals." : "Confirm this deployment environment change is intentional."
+    }
+  ];
+}
+function diffResourceGroup(base, head) {
+  if (!base?.resourceGroup || head.resourceGroup) {
+    return [];
+  }
+  const sensitive = isDeployLikeName(head.id) || isProduction(head.environment);
+  return [
+    {
+      id: "resource-group-removed",
+      title: "Resource group removed",
+      severity: sensitive ? "medium" : "low",
+      category: "deployment",
+      file: head.file,
+      job: head.id,
+      before: base.resourceGroup,
+      evidence: [
+        `Job \`${head.id}\` no longer uses \`resource_group: ${base.resourceGroup}\`.`
+      ],
+      recommendation: "Without a resource group, concurrent pipelines can run this job at the same time. Keep deploys serialized."
+    }
+  ];
+}
+function diffSecretsKeyword(base, head) {
+  const before = new Map(
+    (base?.secrets ?? []).map((secret) => [secret.name, secret.source])
+  );
+  const findings = [];
+  for (const secret of head.secrets) {
+    const previous = before.get(secret.name);
+    if (previous === secret.source) {
+      continue;
+    }
+    findings.push({
+      id: previous === void 0 ? "ci-secret-added" : "ci-secret-changed",
+      title: previous === void 0 ? "External secret added" : "External secret source changed",
+      severity: "high",
+      category: "secret",
+      file: head.file,
+      job: head.id,
+      before: previous,
+      after: secret.source,
+      evidence: [
+        previous === void 0 ? `Job \`${head.id}\` now reads secret \`${secret.name}\` from \`${secret.source}\`.` : `Job \`${head.id}\` secret \`${secret.name}\` changed from \`${previous}\` to \`${secret.source}\`.`
+      ],
+      recommendation: "Confirm the secret is needed by this job and that the job only runs on protected refs or environments that should receive it."
+    });
+  }
+  return findings;
+}
+function diffExtends(base, head) {
+  if (!base || sameStringSet(base.extends, head.extends)) {
+    return [];
+  }
+  return [
+    {
+      id: "job-extends-changed",
+      title: "Job extends changed",
+      severity: "info",
+      category: "config",
+      file: head.file,
+      job: head.id,
+      before: base.extends,
+      after: head.extends,
+      evidence: [
+        `Job \`${head.id}\` extends changed from ${formatList(base.extends, noneLabel)} to ${formatList(head.extends, noneLabel)}.`,
+        "Other findings for this job compare the fully resolved configuration."
+      ],
+      recommendation: "Confirm the new template still provides the rules, environment, and runner settings the job relies on."
+    }
+  ];
+}
+function diffVariables(params) {
+  const findings = [];
+  const baseByName = new Map(
+    params.base.map((variable) => [variable.name, variable])
+  );
+  for (const variable of params.head) {
+    const before = baseByName.get(variable.name);
+    const addedRefs = newSecretRefs(before?.valueText, variable.valueText);
+    if (addedRefs.length > 0) {
+      findings.push(
+        secretRefFinding({
+          file: params.file,
+          job: params.job,
+          refs: addedRefs,
+          inScript: false,
+          evidence: [
+            `${params.scope} \`${variable.name}\` newly references ${formatRefs(addedRefs)}.`
+          ]
+        })
+      );
+    }
+    if (isSecretLikeName(variable.name) && isLiteralValue(variable.valueText) && (before?.valueText !== variable.valueText || !isLiteralValue(before?.valueText))) {
+      findings.push({
+        id: "secret-literal-added",
+        title: "Secret-like variable has a literal value",
+        severity: "high",
+        category: "secret",
+        file: params.file,
+        job: params.job,
+        evidence: [
+          `${params.scope} \`${variable.name}\` is set to a literal value in the CI file (value not shown).`
+        ],
+        recommendation: "Store credentials as masked, protected CI/CD variables or in a secrets manager instead of committing them to the repository."
+      });
+    }
+  }
+  return findings;
+}
+function isLiteralValue(value) {
+  return Boolean(value?.trim()) && !/\$/.test(value ?? "");
+}
+function diffScripts(file, job, scope, baseScripts, headScripts) {
+  const addedRefs = newSecretRefs(
+    baseScripts.map((script) => script.text).join("\n"),
+    headScripts.map((script) => script.text).join("\n")
+  );
+  if (addedRefs.length === 0) {
+    return [];
+  }
+  const cited = headScripts.flatMap((script) => script.text.split("\n")).map((line) => line.trim()).filter((line) => addedRefs.some((ref) => line.includes(ref.display))).slice(0, 4);
+  return [
+    secretRefFinding({
+      file,
+      job,
+      refs: addedRefs,
+      inScript: true,
+      evidence: [
+        `${scope} script newly references ${formatRefs(addedRefs)}.`,
+        ...cited.map((line) => `\`${line}\``)
+      ]
+    })
+  ];
+}
+function secretRefFinding(params) {
+  const userSecrets = params.refs.some((ref) => !ref.predefined);
+  const severity = params.inScript && userSecrets ? "high" : "medium";
+  return {
+    id: "secret-reference-added",
+    title: params.inScript ? "Secret-like variable used in a script" : "Secret-like variable reference added",
+    severity,
+    category: "secret",
+    file: params.file,
+    job: params.job,
+    evidence: params.evidence,
+    recommendation: params.inScript ? "Confirm the credential is needed, is masked and protected in CI/CD settings, and is not reachable from merge request pipelines that run untrusted code. Avoid echoing it or passing it on command lines that end up in logs." : "Confirm the credential is needed and is not exposed to pipelines that run untrusted code."
+  };
+}
+function diffImage(file, job, scope, before, after) {
+  if (before === after || !before && !after) {
+    return [];
+  }
+  const findings = [
+    {
+      id: "image-changed",
+      title: "Image changed",
+      severity: "medium",
+      category: "runner",
+      file,
+      job,
+      before,
+      after,
+      evidence: [imageEvidence(scope, before, after)],
+      recommendation: after && imageUsesLatest(after) ? "Avoid mutable latest image tags in CI jobs." : "Confirm the image source and tag are trusted."
+    }
+  ];
+  if (isDockerInDockerImage(after) && !isDockerInDockerImage(before)) {
+    findings.push({
+      id: "privileged-image-added",
+      title: "Docker-in-Docker image added",
+      severity: "high",
+      category: "runner",
+      file,
+      job,
+      after,
+      evidence: [
+        `${scope} now runs in \`${after}\`, which needs a privileged runner.`
+      ],
+      recommendation: "Review privileged Docker-in-Docker use carefully; it can expand the job's access to the runner host."
+    });
+  }
+  return findings;
+}
+function imageEvidence(scope, before, after) {
+  if (before && after) {
+    return `${scope} image changed from \`${before}\` to \`${after}\`.`;
+  }
+  if (after) {
+    return `${scope} image is now \`${after}\`.`;
+  }
+  return `${scope} image \`${before ?? "unknown"}\` was removed.`;
+}
+function diffServices(file, job, scope, baseServices, headServices) {
+  const findings = [];
+  const used = /* @__PURE__ */ new Set();
+  const unpairedBase = [];
+  const pairs = [];
+  for (const service of baseServices) {
+    const index = headServices.findIndex(
+      (candidate, candidateIndex) => !used.has(candidateIndex) && candidate.key === service.key
+    );
+    if (index === -1) {
+      unpairedBase.push(service);
+      continue;
+    }
+    used.add(index);
+    pairs.push([service, headServices[index]]);
+  }
+  const unpairedHead = headServices.filter((_, index) => !used.has(index));
+  if (unpairedBase.length === 1 && unpairedHead.length === 1) {
+    pairs.push([unpairedBase[0], unpairedHead[0]]);
+  } else {
+    pairs.push(
+      ...unpairedBase.map(
+        (service) => [service, void 0]
+      ),
+      ...unpairedHead.map(
+        (service) => [void 0, service]
+      )
+    );
+  }
+  for (const [before, after] of pairs) {
+    if (before?.image === after?.image) {
+      continue;
+    }
+    findings.push(serviceFinding(file, job, scope, before, after));
+    if (isDockerInDockerImage(after?.image) && !baseServices.some((service) => isDockerInDockerImage(service.image))) {
+      findings.push({
+        id: "privileged-service-added",
+        title: "Privileged service added",
+        severity: "high",
+        category: "runner",
+        file,
+        job,
+        after: after?.image,
+        evidence: [
+          `${scope} service \`${after?.label ?? "service"}\` uses \`${after?.image ?? "unknown image"}\`, which needs a privileged runner.`
+        ],
+        recommendation: "Review privileged services carefully; Docker-in-Docker can expand the job's access to the runner host."
+      });
+    }
+  }
+  return findings;
+}
+function serviceFinding(file, job, scope, before, after) {
+  const label = after?.label ?? before?.label ?? "service";
+  let detail;
+  if (before?.image && after?.image) {
+    detail = `${scope} service \`${label}\` image changed from \`${before.image}\` to \`${after.image}\`.`;
+  } else if (after?.image) {
+    detail = `${scope} service \`${label}\` image is now \`${after.image}\`.`;
+  } else {
+    detail = `${scope} service \`${label}\` image \`${before?.image ?? "unknown"}\` was removed.`;
+  }
+  return {
+    id: "service-image-changed",
+    title: "Service image changed",
+    severity: "medium",
+    category: "runner",
+    file,
+    job,
+    before: before?.image,
+    after: after?.image,
+    evidence: [detail],
+    recommendation: "Confirm the service image source and tag are trusted."
+  };
+}
+function diffTags(file, job, scope, before, after) {
+  const baseTags = before ?? [];
+  const headTags = after ?? [];
+  if (sameStringSet(baseTags, headTags)) {
+    return [];
+  }
+  const removed = baseTags.length > 0 && headTags.length === 0;
+  const added = baseTags.length === 0 && headTags.length > 0;
+  const id = added ? "runner-tags-added" : removed ? "runner-tags-removed" : "runner-tags-changed";
+  const title = added ? "Runner tags added" : removed ? "Runner tags removed" : "Runner tags changed";
+  const evidence = added ? `${scope} tags added: ${formatList(headTags, noneLabel)}.` : removed ? `${scope} tags removed: ${formatList(baseTags, noneLabel)}.` : `${scope} tags changed from ${formatList(baseTags, noneLabel)} to ${formatList(headTags, noneLabel)}.`;
+  return [
+    {
+      id,
+      title,
+      severity: "medium",
+      category: "runner",
+      file,
+      job,
+      before: baseTags,
+      after: headTags,
+      evidence: [evidence],
+      recommendation: "Confirm the runner tags still select a trusted runner fleet."
+    }
+  ];
+}
+function diffIdTokens(file, job, scope, baseTokens, headTokens) {
+  const baseByName = new Map(baseTokens.map((token) => [token.name, token]));
+  const findings = [];
+  for (const token of headTokens) {
+    const previous = baseByName.get(token.name);
+    if (!previous) {
+      const aud = token.aud ? ` with aud \`${token.aud}\`` : "";
+      findings.push({
+        id: "id-token-added",
+        title: "OIDC id_token added",
+        severity: "high",
+        category: "oidc",
+        file,
+        job,
+        after: token.aud,
+        evidence: [`${scope} added id_token \`${token.name}\`${aud}.`],
+        recommendation: "Confirm the OIDC audience and downstream trust policy are limited to this project and the intended refs."
+      });
+      continue;
+    }
+    if (previous.aud !== token.aud) {
+      findings.push({
+        id: "id-token-audience-changed",
+        title: "OIDC id_token audience changed",
+        severity: "high",
+        category: "oidc",
+        file,
+        job,
+        before: previous.aud,
+        after: token.aud,
+        evidence: [
+          `${scope} id_token \`${token.name}\` audience changed from \`${previous.aud ?? "none"}\` to \`${token.aud ?? "none"}\`.`
+        ],
+        recommendation: "Confirm the new audience's trust policy is limited to this project and the intended refs."
+      });
+    }
+  }
+  return findings;
+}
+
+// src/providers/gitlab-ci/includes.ts
+import path2 from "path";
+function extractIncludes(root) {
+  const raw = root.include;
+  if (raw === void 0 || raw === null) {
+    return [];
+  }
+  const entries = Array.isArray(raw) ? raw : [raw];
+  return entries.map((entry) => classifyInclude(entry));
+}
+function classifyInclude(entry) {
+  if (typeof entry === "string") {
+    const trimmed = entry.trim();
+    return isRemoteLocator(trimmed) ? include("remote", `remote: ${trimmed}`) : localInclude(trimmed, {});
+  }
+  const record = asRecord(entry);
+  if (!record) {
+    return include("unknown", "include: unsupported entry");
+  }
+  if (typeof record.local === "string") {
+    return localInclude(record.local, record);
+  }
+  if (typeof record.remote === "string") {
+    return include("remote", `remote: ${record.remote.trim()}`, record);
+  }
+  if (typeof record.template === "string") {
+    return include("template", `template: ${record.template.trim()}`, record);
+  }
+  if (typeof record.component === "string") {
+    return include(
+      "component",
+      `component: ${record.component.trim()}`,
+      record
+    );
+  }
+  if ("project" in record) {
+    const project = typeof record.project === "string" ? record.project.trim() : "unknown";
+    const files = stringList(record.file).map((file) => file.trim()).filter(Boolean);
+    const ref = typeof record.ref === "string" ? ` ref: ${record.ref}` : "";
+    const locator = files.length > 0 ? `project: ${project}${ref} file: ${files.join(", ")}` : `project: ${project}${ref}`;
+    return include("project", locator, record);
+  }
+  return include("unknown", "include: unsupported entry", record);
+}
+function localInclude(value, record) {
+  const localPattern = normalizeRepoPath(value);
+  const wildcard = localPattern ? hasWildcard(localPattern) : false;
+  return {
+    ...include("local", `local: ${localPattern ?? value.trim()}`, record),
+    localPattern: localPattern ?? void 0,
+    wildcard
+  };
+}
+function include(kind, locator, record = {}) {
+  return {
+    kind,
+    locator,
+    wildcard: false,
+    rules: renderIncludeRules(record.rules),
+    hasInputs: asRecord(record.inputs) !== null
+  };
+}
+function renderIncludeRules(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((entry) => {
+    const record = asRecord(entry);
+    if (!record) {
+      return String(entry);
+    }
+    return Object.entries(record).map(([key, raw]) => `${key}: ${formatRuleValue(raw)}`).join("; ");
+  });
+}
+function formatRuleValue(value) {
+  if (typeof value === "string") {
+    return value;
+  }
+  return JSON.stringify(value);
+}
+function isRemoteLocator(value) {
+  return /^https?:\/\//i.test(value);
+}
+function hasWildcard(pattern) {
+  return /[*?{]/.test(pattern);
+}
+function isYamlPath(filePath) {
+  return /\.ya?ml$/i.test(filePath);
+}
+function normalizeRepoPath(input) {
+  const trimmed = input.trim().replace(/\\/g, "/");
+  if (!trimmed || trimmed.includes("\0")) {
+    return null;
+  }
+  const normalized = path2.posix.normalize(trimmed.replace(/^\/+/, ""));
+  if (normalized === "." || normalized === ".." || normalized.startsWith("../") || normalized.startsWith("/")) {
+    return null;
+  }
+  return normalized.replace(/\/+$/, "");
+}
+function wildcardToRegExp(pattern) {
+  let source = "";
+  for (let index = 0; index < pattern.length; index += 1) {
+    const char = pattern[index] ?? "";
+    if (char === "*") {
+      if (pattern[index + 1] === "*") {
+        source += ".*";
+        index += 1;
+      } else {
+        source += "[^/]*";
+      }
+    } else if (char === "?") {
+      source += "[^/]";
+    } else if (char === "{") {
+      const end = pattern.indexOf("}", index);
+      if (end === -1) {
+        source += "\\{";
+      } else {
+        const options = pattern.slice(index + 1, end).split(",").map((option) => option.replace(/[.+^$()|[\]\\]/g, "\\$&"));
+        source += `(?:${options.join("|")})`;
+        index = end;
+      }
+    } else {
+      source += char.replace(/[.+^$()|[\]\\{}]/g, "\\$&");
+    }
+  }
+  return new RegExp(`^${source}$`);
+}
+function matchLocalInclude(include2, paths) {
+  if (!include2.localPattern) {
+    return [];
+  }
+  if (!include2.wildcard) {
+    for (const candidate of paths) {
+      if (candidate === include2.localPattern) {
+        return [candidate];
+      }
+    }
+    return [];
+  }
+  const matcher = wildcardToRegExp(include2.localPattern);
+  return [...paths].filter((candidate) => matcher.test(candidate) && isYamlPath(candidate)).sort();
+}
+
+// src/providers/gitlab-ci/yaml.ts
+var import_yaml2 = __toESM(require_dist(), 1);
+var GitLabReference = class {
+  constructor(path3) {
+    this.path = path3;
+  }
+  path;
+  toString() {
+    return `!reference [${this.path.join(", ")}]`;
+  }
+};
+var referenceTag = {
+  tag: "!reference",
+  collection: "seq",
+  identify: (value) => value instanceof GitLabReference,
+  resolve(seq, onError) {
+    const path3 = seq.items.map(
+      (item) => (0, import_yaml2.isScalar)(item) ? String(item.value) : ""
+    );
+    if (path3.length === 0 || path3.some((segment) => segment === "")) {
+      onError("!reference expects a sequence of key names");
+    }
+    return new GitLabReference(path3);
+  }
+};
+function parseGitLabYaml(content) {
+  const documents = (0, import_yaml2.parseAllDocuments)(content, {
+    merge: true,
+    uniqueKeys: false,
+    customTags: [referenceTag]
+  });
+  const list = Array.isArray(documents) ? documents : [];
+  const errors = list.flatMap(
+    (doc) => doc.errors.map((error) => error.message)
+  );
+  if (errors.length > 0) {
+    return { root: null, errors };
+  }
+  if (list.length === 0) {
+    return { root: {}, errors: [] };
+  }
+  let configDocument = list[0];
+  if (list.length === 2) {
+    const header = asRecord(safeToJs(list[0]).value);
+    if (!header || !("spec" in header)) {
+      return {
+        root: null,
+        errors: [
+          "Found more than one YAML document. GitLab only accepts a `spec:` header document followed by the configuration."
+        ]
+      };
+    }
+    configDocument = list[1];
+  } else if (list.length > 2) {
+    return {
+      root: null,
+      errors: [
+        `Found ${list.length} YAML documents. GitLab only accepts a \`spec:\` header document followed by the configuration.`
+      ]
+    };
+  }
+  if (!configDocument) {
+    return { root: {}, errors: [] };
+  }
+  const converted = safeToJs(configDocument);
+  if (converted.error) {
+    return { root: null, errors: [converted.error] };
+  }
+  if (converted.value === null || converted.value === void 0) {
+    return { root: {}, errors: [] };
+  }
+  const root = asRecord(converted.value);
+  if (!root || converted.value instanceof GitLabReference) {
+    return {
+      root: null,
+      errors: [
+        `The top level of a GitLab CI file must be a mapping of keywords and jobs, found ${describeValue(converted.value)}.`
+      ]
+    };
+  }
+  return { root, errors: [] };
+}
+function safeToJs(document) {
+  try {
+    return { value: document.toJS({ maxAliasCount: 1e4 }) };
+  } catch (error) {
+    return {
+      value: void 0,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+function describeValue(value) {
+  if (Array.isArray(value)) {
+    return "a sequence";
+  }
+  if (value instanceof GitLabReference) {
+    return "a !reference tag";
+  }
+  return `a ${typeof value} value`;
+}
+
+// src/providers/gitlab-ci/resolve.ts
+var globalKeywords = /* @__PURE__ */ new Set([
+  "default",
+  "include",
+  "stages",
+  "variables",
+  "workflow",
+  "image",
+  "services",
+  "before_script",
+  "after_script",
+  "cache",
+  "types",
+  "spec"
+]);
+var legacyDefaultKeywords = [
+  "image",
+  "services",
+  "before_script",
+  "after_script",
+  "cache"
+];
+var inheritableDefaultKeywords = /* @__PURE__ */ new Set([
+  "after_script",
+  "artifacts",
+  "before_script",
+  "cache",
+  "hooks",
+  "id_tokens",
+  "identity",
+  "image",
+  "interruptible",
+  "retry",
+  "services",
+  "tags",
+  "timeout"
+]);
+var maxExtendsDepth = 11;
+var maxReferenceDepth = 10;
+function resolvePipeline(rootPath, files) {
+  const includes = [];
+  const problems = [];
+  const visited = /* @__PURE__ */ new Set();
+  const available = [...files.keys()];
+  const expand2 = (filePath, stack) => {
+    visited.add(filePath);
+    const root = files.get(filePath)?.root ?? {};
+    const layer = { config: {}, origins: /* @__PURE__ */ new Map() };
+    for (const include2 of extractIncludes(root)) {
+      const record = { file: filePath, include: include2, matched: [] };
+      includes.push(record);
+      if (include2.kind !== "local") {
+        record.notExpandedReason = notExpandedReason(include2);
+        continue;
+      }
+      if (!include2.localPattern) {
+        record.notExpandedReason = "the local path is not a repository path";
+        continue;
+      }
+      if (!include2.wildcard && !isYamlPath(include2.localPattern)) {
+        record.notExpandedReason = "local includes must be `.yml` or `.yaml` files";
+        continue;
+      }
+      const matched = matchLocalInclude(
+        include2,
+        available.filter((candidate) => candidate !== filePath)
+      );
+      record.matched = matched;
+      if (matched.length === 0) {
+        record.notExpandedReason = include2.wildcard ? "the wildcard did not match any `.yml` or `.yaml` file at this ref" : "the file does not exist at this ref";
+        continue;
+      }
+      for (const includedPath of matched) {
+        if (stack.includes(includedPath)) {
+          problems.push({
+            kind: "include-cycle",
+            file: filePath,
+            detail: `\`${includedPath}\` includes itself through \`${[...stack, includedPath].join("` -> `")}\`.`
+          });
+          continue;
+        }
+        if (visited.has(includedPath)) {
+          continue;
+        }
+        mergeLayer(layer, expand2(includedPath, [...stack, includedPath]));
+      }
+    }
+    const own = { config: {}, origins: /* @__PURE__ */ new Map() };
+    for (const [key, value] of Object.entries(root)) {
+      if (key === "include") {
+        continue;
+      }
+      own.config[key] = value;
+      own.origins.set(key, filePath);
+    }
+    mergeLayer(layer, own);
+    return layer;
+  };
+  const merged = expand2(rootPath, [rootPath]);
+  const config = merged.config;
+  const origins = merged.origins;
+  const originOf = (key) => origins.get(key) ?? rootPath;
+  const extendsByKey = resolveExtends(config, originOf, problems);
+  resolveAllReferences(config, originOf, problems);
+  const { defaults: defaults2, defaultsFile } = collectDefaults(config, originOf);
+  const jobs = [];
+  for (const [id, value] of Object.entries(config)) {
+    if (globalKeywords.has(id) || id.startsWith(".")) {
+      continue;
+    }
+    const job = asRecord(value);
+    if (!job) {
+      continue;
+    }
+    const allowed = allowedDefaultKeys(job);
+    const effective2 = { ...job };
+    const inherited = /* @__PURE__ */ new Set();
+    for (const [key, defaultValue] of Object.entries(defaults2)) {
+      if (!allowed(key) || key in job || defaultValue === void 0) {
+        continue;
+      }
+      effective2[key] = defaultValue;
+      inherited.add(key);
+    }
+    jobs.push({
+      id,
+      file: originOf(id),
+      config: effective2,
+      inherited,
+      extends: extendsByKey.get(id) ?? []
+    });
+  }
+  return {
+    rootPath,
+    files: [...visited].sort(),
+    config,
+    origins,
+    jobs,
+    defaults: defaults2,
+    defaultsFile,
+    includes,
+    problems
+  };
+}
+function notExpandedReason(include2) {
+  switch (include2.kind) {
+    case "remote":
+      return "remote includes are not fetched";
+    case "project":
+      return "includes from other projects are not fetched";
+    case "template":
+      return "GitLab templates are not fetched";
+    case "component":
+      return "CI/CD components are not fetched";
+    default:
+      return "the include entry is not recognized";
+  }
+}
+function mergeLayer(target, source) {
+  for (const [key, value] of Object.entries(source.config)) {
+    target.config[key] = deepMerge(target.config[key], value);
+    const origin = source.origins.get(key);
+    if (origin) {
+      target.origins.set(key, origin);
+    }
+  }
+}
+function deepMerge(base, override) {
+  const baseRecord = mergeableRecord(base);
+  const overrideRecord = mergeableRecord(override);
+  if (!baseRecord || !overrideRecord) {
+    return override;
+  }
+  const result = { ...baseRecord };
+  for (const [key, value] of Object.entries(overrideRecord)) {
+    result[key] = deepMerge(result[key], value);
+  }
+  return result;
+}
+function mergeableRecord(value) {
+  return value instanceof GitLabReference ? null : asRecord(value);
+}
+function resolveExtends(config, originOf, problems) {
+  const resolved = /* @__PURE__ */ new Map();
+  const extendsByKey = /* @__PURE__ */ new Map();
+  const resolve = (key, stack) => {
+    const cached = resolved.get(key);
+    if (cached) {
+      return cached;
+    }
+    const entry = mergeableRecord(config[key]);
+    if (!entry) {
+      return null;
+    }
+    const parents = stringList(entry.extends);
+    if (parents.length === 0) {
+      resolved.set(key, entry);
+      return entry;
+    }
+    const owner = stack[0] ?? key;
+    let base = {};
+    for (const parent of parents) {
+      if (parent === key || stack.includes(parent)) {
+        problems.push({
+          kind: "extends",
+          file: originOf(owner),
+          job: jobName(owner),
+          detail: `\`${key}\` has a circular \`extends: ${parent}\`.`
+        });
+        continue;
+      }
+      if (stack.length >= maxExtendsDepth) {
+        problems.push({
+          kind: "extends",
+          file: originOf(owner),
+          job: jobName(owner),
+          detail: `\`${key}\` exceeds GitLab's ${maxExtendsDepth}-level \`extends\` limit.`
+        });
+        continue;
+      }
+      const parentConfig = resolve(parent, [...stack, key]);
+      if (!parentConfig) {
+        problems.push({
+          kind: "extends",
+          file: originOf(key),
+          job: jobName(key),
+          detail: `\`${key}\` extends \`${parent}\`, which is not defined in the merged configuration.`
+        });
+        continue;
+      }
+      base = deepMerge(base, parentConfig);
+    }
+    const result = deepMerge(base, entry);
+    resolved.set(key, result);
+    return result;
+  };
+  for (const key of Object.keys(config)) {
+    const entry = mergeableRecord(config[key]);
+    if (!entry || entry.extends === void 0) {
+      continue;
+    }
+    extendsByKey.set(key, stringList(entry.extends));
+    const result = resolve(key, []);
+    if (result) {
+      config[key] = result;
+    }
+  }
+  return extendsByKey;
+}
+function resolveAllReferences(config, originOf, problems) {
+  const snapshot = { ...config };
+  for (const key of Object.keys(config)) {
+    config[key] = resolveReferences(
+      snapshot[key],
+      snapshot,
+      0,
+      (detail) => problems.push({
+        kind: "reference",
+        file: originOf(key),
+        job: jobName(key),
+        detail
+      })
+    );
+  }
+}
+function resolveReferences(value, config, depth, report) {
+  if (value instanceof GitLabReference) {
+    if (depth >= maxReferenceDepth) {
+      report(
+        `\`${value.toString()}\` exceeds GitLab's ${maxReferenceDepth}-level \`!reference\` nesting limit.`
+      );
+      return void 0;
+    }
+    const target = lookupPath(config, value.path);
+    if (target === void 0) {
+      report(
+        `\`${value.toString()}\` points at a key that is not defined in the merged configuration.`
+      );
+      return void 0;
+    }
+    return resolveReferences(target, config, depth + 1, report);
+  }
+  if (Array.isArray(value)) {
+    const items = [];
+    for (const item of value) {
+      const resolved = resolveReferences(item, config, depth, report);
+      if (item instanceof GitLabReference && Array.isArray(resolved)) {
+        items.push(...resolved);
+      } else if (resolved !== void 0) {
+        items.push(resolved);
+      }
+    }
+    return items;
+  }
+  const record = asRecord(value);
+  if (record) {
+    const result = {};
+    for (const [key, child] of Object.entries(record)) {
+      const resolved = resolveReferences(child, config, depth, report);
+      if (resolved !== void 0) {
+        result[key] = resolved;
+      }
+    }
+    return result;
+  }
+  return value;
+}
+function lookupPath(config, segments) {
+  let current = config;
+  for (const segment of segments) {
+    const record = mergeableRecord(current);
+    if (!record || !(segment in record)) {
+      return void 0;
+    }
+    current = record[segment];
+  }
+  return current;
+}
+function collectDefaults(config, originOf) {
+  const defaults2 = {};
+  let defaultsFile;
+  for (const key of legacyDefaultKeywords) {
+    if (config[key] !== void 0) {
+      defaults2[key] = config[key];
+      defaultsFile ??= originOf(key);
+    }
+  }
+  const explicit = asRecord(config.default);
+  if (explicit) {
+    Object.assign(defaults2, explicit);
+    defaultsFile = originOf("default");
+  }
+  return { defaults: defaults2, defaultsFile: defaultsFile ?? originOf("default") };
+}
+function allowedDefaultKeys(job) {
+  const inherit = asRecord(job.inherit);
+  const setting = inherit?.default;
+  if (setting === false) {
+    return () => false;
+  }
+  if (Array.isArray(setting)) {
+    const allowed = new Set(stringList(setting));
+    return (key) => inheritableDefaultKeywords.has(key) && allowed.has(key);
+  }
+  return (key) => inheritableDefaultKeywords.has(key);
+}
+function jobName(key) {
+  return key.startsWith(".") || globalKeywords.has(key) ? void 0 : key;
+}
+
+// src/providers/gitlab-ci/adapter.ts
+var maxIncludedFiles = 500;
+var GitLabCiAdapter = class {
+  id = "gitlab-ci";
+  displayName = "GitLab CI";
+  workflowGlobs = [".gitlab-ci.yml", ".gitlab-ci.yaml"];
+  async expandFiles(source, files) {
+    const byPath2 = new Map(files.map((file) => [file.path, file]));
+    const pending = [...files];
+    const attempted = new Set(byPath2.keys());
+    let repositoryPaths;
+    const listPaths = () => {
+      repositoryPaths ??= source.listPaths ? source.listPaths() : Promise.resolve(null);
+      return repositoryPaths;
+    };
+    const load = async (filePath) => {
+      if (attempted.has(filePath) || attempted.size >= maxIncludedFiles) {
+        return;
+      }
+      attempted.add(filePath);
+      const extra = await source.readFile(filePath);
+      if (extra) {
+        byPath2.set(extra.path, extra);
+        pending.push(extra);
+      }
+    };
+    while (pending.length > 0) {
+      const file = pending.shift();
+      if (!file) {
+        break;
+      }
+      const { root } = parseGitLabYaml(file.content);
+      if (!root) {
+        continue;
+      }
+      for (const include2 of extractIncludes(root)) {
+        if (include2.kind !== "local" || !include2.localPattern) {
+          continue;
+        }
+        if (!include2.wildcard) {
+          if (isYamlPath(include2.localPattern)) {
+            await load(include2.localPattern);
+          }
+          continue;
+        }
+        const paths = await listPaths();
+        if (paths) {
+          for (const match2 of matchLocalInclude(include2, paths)) {
+            await load(match2);
+          }
+          continue;
+        }
+        const matcher = wildcardToRegExp(include2.localPattern);
+        const candidates = await source.listFiles([
+          include2.localPattern.replace(/\*\*+/g, "**/*")
+        ]);
+        for (const candidate of candidates) {
+          if (matcher.test(candidate.path) && isYamlPath(candidate.path) && !attempted.has(candidate.path)) {
+            attempted.add(candidate.path);
+            byPath2.set(candidate.path, candidate);
+            pending.push(candidate);
+          }
+        }
+      }
+    }
+    return [...byPath2.values()].sort(
+      (left, right) => left.path.localeCompare(right.path)
+    );
+  }
+  async parse(files) {
+    const parsed = [];
+    const parseFindings = [];
+    for (const file of [...files].sort(
+      (left, right) => left.path.localeCompare(right.path)
+    )) {
+      const doc = parseGitLabYaml(file.content);
+      parsed.push({
+        path: file.path,
+        raw: file.content,
+        root: doc.root,
+        errors: doc.errors
+      });
+      if (!doc.root) {
+        parseFindings.push(
+          parseErrorFinding({
+            file: file.path,
+            title: "CI file parse error",
+            errors: doc.errors,
+            recommendation: "Fix invalid CI YAML before relying on CI Delta results. ci-delta compares this file as if it were unchanged."
+          })
+        );
+      }
+    }
+    return {
+      files: parsed,
+      roots: findRoots(parsed, this.workflowGlobs),
+      parseFindings
+    };
+  }
+  async diff(base, head) {
+    return [
+      ...base.parseFindings,
+      ...head.parseFindings,
+      ...diffSnapshots(base, head)
+    ];
+  }
+};
+function findRoots(files, defaultRoots) {
+  const paths = files.map((file) => file.path);
+  const included = /* @__PURE__ */ new Set();
+  for (const file of files) {
+    if (!file.root) {
+      continue;
+    }
+    for (const include2 of extractIncludes(file.root)) {
+      if (include2.kind !== "local") {
+        continue;
+      }
+      for (const match2 of matchLocalInclude(
+        include2,
+        paths.filter((candidate) => candidate !== file.path)
+      )) {
+        included.add(match2);
+      }
+    }
+  }
+  const roots = paths.filter((candidate) => !included.has(candidate));
+  if (roots.length > 0 || paths.length === 0) {
+    return roots;
+  }
+  return paths.filter((candidate) => defaultRoots.includes(candidate));
+}
+function diffSnapshots(base, head) {
+  const findings = [];
+  const baseByPath = new Map(base.files.map((file) => [file.path, file]));
+  const headByPath = new Map(head.files.map((file) => [file.path, file]));
+  const paths = [
+    .../* @__PURE__ */ new Set([...baseByPath.keys(), ...headByPath.keys()])
+  ].sort();
+  for (const filePath of paths) {
+    const before = baseByPath.get(filePath);
+    const after = headByPath.get(filePath);
+    if (before && !after) {
+      findings.push(
+        fileRemovedFinding(filePath, base.roots.includes(filePath))
+      );
+    } else if (after && !before) {
+      findings.push(fileAddedFinding(filePath, head.roots.includes(filePath)));
+    }
+  }
+  const baseDocs = substituteInvalid(baseByPath, headByPath);
+  const headDocs = substituteInvalid(headByPath, baseByPath);
+  for (const rootPath of [...head.roots].sort()) {
+    const headPipeline = buildPipeline(rootPath, headDocs);
+    const basePipeline = baseDocs.has(rootPath) ? buildPipeline(rootPath, baseDocs) : void 0;
+    findings.push(...diffPipelines(basePipeline, headPipeline));
+  }
+  return findings;
+}
+function buildPipeline(rootPath, docs) {
+  return normalizePipeline(resolvePipeline(rootPath, docs));
+}
+function substituteInvalid(side, other) {
+  const result = /* @__PURE__ */ new Map();
+  for (const [filePath, file] of side) {
+    const fallback = other.get(filePath);
+    result.set(
+      filePath,
+      !file.root && fallback?.root ? { ...file, root: fallback.root } : file
+    );
+  }
+  return result;
+}
+function fileAddedFinding(filePath, root) {
+  return root ? fileChangeFinding({
+    id: "ci-file-added",
+    title: "CI file added",
+    severity: "medium",
+    file: filePath,
+    evidence: `New CI file detected: ${filePath}`,
+    recommendation: "Review the new CI file's jobs, rules, images, runner tags, and secrets before merge."
+  }) : fileChangeFinding({
+    id: "ci-file-added",
+    title: "Included CI file added",
+    severity: "info",
+    file: filePath,
+    evidence: `New included CI file: ${filePath}. Its jobs are compared as part of the merged pipeline.`,
+    recommendation: "Job-level findings, if any, describe what this file changes in the effective pipeline."
+  });
+}
+function fileRemovedFinding(filePath, root) {
+  return root ? fileChangeFinding({
+    id: "ci-file-removed",
+    title: "CI file removed",
+    severity: "medium",
+    file: filePath,
+    evidence: `CI file removed: ${filePath}`,
+    recommendation: "Confirm the removed CI file is no longer required by pipeline gates."
+  }) : fileChangeFinding({
+    id: "ci-file-removed",
+    title: "Included CI file removed",
+    severity: "info",
+    file: filePath,
+    evidence: `Included CI file removed: ${filePath}. Its jobs are compared as part of the merged pipeline.`,
+    recommendation: "Job-level findings, if any, describe what removing this file changes in the effective pipeline."
+  });
+}
+
+// src/providers/registry.ts
+var providerAliases = "github-actions, gha, github, gitlab-ci, gitlab";
+function resolveProviderId(input) {
+  switch (input.trim().toLowerCase()) {
+    case "github-actions":
+    case "gha":
+    case "github":
+      return "github-actions";
+    case "gitlab-ci":
+    case "gitlab":
+      return "gitlab-ci";
+    default:
+      return null;
+  }
+}
+function createProviderAdapter(id) {
+  switch (id) {
+    case "github-actions":
+      return new GitHubActionsAdapter();
+    case "gitlab-ci":
+      return new GitLabCiAdapter();
+    default: {
+      const unsupported = id;
+      throw new Error(`Unsupported provider: ${String(unsupported)}`);
+    }
+  }
+}
 
 // src/reporters/json.ts
 var reportSchemaVersion = "ci-delta.report.v1";
@@ -10654,7 +13589,7 @@ function reportToMarkdown(report) {
     lines.push(emptyChangeMessage(report.provider));
     return lines.join("\n");
   }
-  lines.push("Changed workflow files:");
+  lines.push(changedFilesHeading(report.provider));
   for (const file of report.changedFiles) {
     lines.push(`- \`${file}\``);
   }
@@ -10689,6 +13624,12 @@ function reportToMarkdown(report) {
 function capitalize(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
+function changedFilesHeading(provider) {
+  if (provider === "gitlab-ci") {
+    return "Changed CI files:";
+  }
+  return "Changed workflow files:";
+}
 function emptyChangeMessage(provider) {
   if (provider === "gitlab-ci") {
     return "No GitLab CI config changes detected.";
@@ -10704,9 +13645,12 @@ async function runAction({
   env = process.env,
   fetchImpl = fetch
 } = {}) {
-  const provider = readInput(env, "provider", "github-actions");
-  if (provider !== "github-actions") {
-    throw new ActionConfigurationError(`Unsupported provider: ${provider}`);
+  const providerInput = readInput(env, "provider", "github-actions");
+  const providerId = resolveProviderId(providerInput);
+  if (!providerId) {
+    throw new ActionConfigurationError(
+      `Unsupported provider: ${providerInput}. Use one of: ${providerAliases}.`
+    );
   }
   const format = readInput(env, "format", "markdown");
   if (format !== "markdown" && format !== "json") {
@@ -10730,7 +13674,7 @@ async function runAction({
     );
   }
   const apiUrl = env.GITHUB_API_URL ?? "https://api.github.com";
-  const adapter = new GitHubActionsAdapter();
+  const adapter = createProviderAdapter(providerId);
   const report = await compareSources({
     provider: adapter,
     baseSource: new GitHubApiFileSource({
