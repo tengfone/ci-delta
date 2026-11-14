@@ -1,4 +1,11 @@
-export type JsonObject = Record<string, unknown>;
+import {
+  asRecord,
+  stringList,
+  stringValue,
+  type JsonObject,
+} from "../shared.js";
+
+export { asRecord, stringList, stringValue, type JsonObject };
 
 export interface GitHubActionsWorkflow {
   path: string;
@@ -222,30 +229,6 @@ export function normalizeJobs(value: unknown): Record<string, NormalizedJob> {
   }
 
   return jobs;
-}
-
-export function stringList(value: unknown): string[] {
-  if (typeof value === "string") {
-    return [value];
-  }
-
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string");
-  }
-
-  return [];
-}
-
-export function asRecord(value: unknown): JsonObject | null {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value as JsonObject;
-  }
-
-  return null;
-}
-
-export function stringValue(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
 }
 
 function addTrigger(

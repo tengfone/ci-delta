@@ -9,6 +9,16 @@ import {
   type NormalizedPermissions,
   type NormalizedStep,
 } from "./normalize.js";
+import {
+  fileChangeFinding,
+  formatList,
+  imageUsesLatest,
+  isDeployLikeName,
+  isGateJobName,
+  isPrivilegedService,
+  isProductionEnvironment,
+  sameStringSet,
+} from "../shared.js";
 
 const sensitiveWriteScopes = new Map<string, Severity>([
   ["contents", "high"],
@@ -1086,29 +1096,27 @@ function triggerFindingDetails(event: string): {
 }
 
 function workflowAddedFinding(workflow: GitHubActionsWorkflow): Finding {
-  return {
+  return fileChangeFinding({
     id: "workflow-added",
     title: "Workflow file added",
     severity: "medium",
-    category: "config",
     file: workflow.path,
-    evidence: [`New workflow file detected: ${workflow.path}`],
+    evidence: `New workflow file detected: ${workflow.path}`,
     recommendation:
       "Review new workflow triggers and permissions before merge.",
-  };
+  });
 }
 
 function workflowRemovedFinding(workflow: GitHubActionsWorkflow): Finding {
-  return {
+  return fileChangeFinding({
     id: "workflow-removed",
     title: "Workflow file removed",
     severity: "medium",
-    category: "config",
     file: workflow.path,
-    evidence: [`Workflow file removed: ${workflow.path}`],
+    evidence: `Workflow file removed: ${workflow.path}`,
     recommendation:
       "Ensure the removal is intentional and does not break required checks.",
-  };
+  });
 }
 
 function byPath(
@@ -1332,50 +1340,6 @@ function pathFilterRemovedFinding(
   };
 }
 
-function sameStringSet(a: string[], b: string[]): boolean {
-  return a.length === b.length && a.every((value) => b.includes(value));
-}
-
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "`<all>`";
-  }
-
-  return values.map((value) => `\`${value}\``).join(", ");
-}
-
-function imageUsesLatest(image: string): boolean {
-  return image.endsWith(":latest") || !image.includes(":");
-}
-
-function isPrivilegedService(
-  image: string | undefined,
-  options: string | undefined,
-): boolean {
-  return (
-    image?.toLowerCase() === "docker:dind" ||
-    options?.toLowerCase().includes("privileged") === true
-  );
-}
-
-function isProductionEnvironment(environment: string): boolean {
-  return /^prod(uction)?$/i.test(environment);
-}
-
 function isDeployJob(jobId: string, job: NormalizedJob): boolean {
-  const haystack = `${jobId} ${job.name ?? ""}`.toLowerCase();
-  return (
-    haystack.includes("deploy") ||
-    haystack.includes("release") ||
-    haystack.includes("publish")
-  );
-}
-
-function isGateJobName(jobId: string): boolean {
-  const normalized = jobId.toLowerCase();
-  return (
-    normalized.includes("test") ||
-    normalized.includes("lint") ||
-    normalized.includes("build")
-  );
+  return isDeployLikeName(jobId, job.name);
 }

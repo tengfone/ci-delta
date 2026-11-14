@@ -4,6 +4,7 @@ import type {
   Finding,
   ProviderAdapter,
 } from "../../core/types.js";
+import { parseErrorFinding } from "../shared.js";
 import { diffWorkflows } from "./diff.js";
 import { normalizeWorkflow, type GitHubActionsWorkflow } from "./normalize.js";
 
@@ -32,16 +33,15 @@ export class GitHubActionsAdapter implements ProviderAdapter<GitHubActionsSnapsh
       const doc = parseDocument(file.content);
 
       if (doc.errors.length > 0) {
-        parseFindings.push({
-          id: "workflow-parse-error",
-          title: "Workflow parse error",
-          severity: "high",
-          category: "config",
-          file: file.path,
-          evidence: doc.errors.map((err) => err.message),
-          recommendation:
-            "Fix invalid workflow syntax before relying on CI Delta results.",
-        });
+        parseFindings.push(
+          parseErrorFinding({
+            file: file.path,
+            title: "Workflow parse error",
+            errors: doc.errors.map((err) => err.message),
+            recommendation:
+              "Fix invalid workflow syntax before relying on CI Delta results.",
+          }),
+        );
         continue;
       }
 
