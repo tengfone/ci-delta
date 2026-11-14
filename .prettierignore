@@ -1,2 +1,3 @@
 dist/
 fixtures/github-actions/invalid-yaml/head/.github/workflows/ci.yml
+fixtures/gitlab-ci/invalid-yaml/head/.gitlab-ci.yml
