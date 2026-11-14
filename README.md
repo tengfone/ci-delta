@@ -16,7 +16,11 @@ Like `terraform plan`, but for GitHub Actions and GitLab CI.
 
 ## What It Catches
 
-`ci-delta` compares GitHub Actions workflow files between a base ref and a head ref, then reports behavior changes that are easy to miss in raw YAML review:
+`ci-delta` compares CI/CD configuration between a base ref and a head ref, then reports behavior changes that are easy to miss in raw YAML review.
+
+### GitHub Actions
+
+Reads `.github/workflows/*.yml` and `.github/workflows/*.yaml`:
 
 - New or removed workflow files
 - Invalid workflow YAML
@@ -30,6 +34,27 @@ Like `terraform plan`, but for GitHub Actions and GitLab CI.
 - Production deployment environment changes
 - Action version changes, unpinning, floating refs, and Docker actions
 - Job graph changes, including possible deploy gate removal
+
+### GitLab CI
+
+Reads `.gitlab-ci.yml` (or `.gitlab-ci.yaml`) and the local files it includes, then compares the effective pipeline: includes merged in GitLab's order, `extends` and `!reference` resolved, YAML anchors and merge keys applied, and `default:` inherited (honoring `inherit:`). Hidden `.template` jobs are not treated as jobs, and moving a job into an included file without changing it is not reported as a removal.
+
+- Job and `workflow:rules` that are removed, match more broadly, or changed in a way that cannot be proven narrower. Rules are compared as an ordered first-match list: new rules ahead of `when: never` deny rules, removed or narrowed deny rules, reordering, `if:` conditions that drop a `&&` clause, gain a `||` alternative, or relax `$VAR == "x"` to `$VAR`, and removed or widened `changes:`/`exists:` guards
+- `only`/`except` refs, variables, and changes that widen or are removed
+- `when: manual` approval gates removed (high on deploy-like jobs), and other `when` changes such as `when: always`
+- `needs` and stage-ordering dependencies removed (including `needs: []`), possible deploy gate removal, stage list changes, and jobs that use an undeclared stage
+- Downstream `trigger:` targets that change, are added, or drop `strategy: depend`
+- `environment` added, changed to production (by name or `deployment_tier`), or removed
+- `allow_failure` enabled, and `resource_group` removed from deploy jobs
+- New or changed external `secrets:` (Vault, Azure Key Vault, GCP Secret Manager, and others)
+- New `id_tokens` and changed OIDC audiences
+- New credential-like variable references in scripts and variables, and secret-like variables set to literal values
+- Docker-in-Docker services and images, which need a privileged runner
+- Image, service image, and runner tag changes
+- New or removed jobs and CI files, and invalid YAML
+- Includes that cannot be expanded (remote, project, template, component, or a missing local path), `include:rules` that are not evaluated, and `extends`/`!reference` targets that cannot be resolved
+
+Credential-like references are variables whose names contain `TOKEN`, `PASSWORD`, `SECRET`, `CREDENTIALS`, `JWT`, `PRIVATE_KEY`, or `ACCESS_KEY`, or end in `KEY` (for example `DEPLOY_KEY` or `GITLAB_API_KEY`). GitLab's predefined `CI_*` variables are ignored, except the ones that carry a credential (`CI_JOB_TOKEN`, `CI_REPOSITORY_URL`, `CI_REGISTRY_PASSWORD`, `CI_DEPLOY_PASSWORD`, `CI_DEPENDENCY_PROXY_PASSWORD`, and `CI_JOB_JWT*`). Those are job-scoped, so they are graded lower than user-defined secrets.
 
 ## CLI
 
@@ -69,7 +94,7 @@ Useful options:
 --output <file>                 write the report to a file
 --fail-on low|medium|high|critical|none
 --repo-root <path>              repository root for local git reads
---include <glob>                include additional workflow-like files
+--include <glob>                include additional CI config files
 --no-color                      reserved for CLI compatibility
 ```
 
@@ -110,12 +135,20 @@ jobs:
           format: markdown
 ```
 
-The action reads base and head workflow files through the GitHub API. It does not check out pull request code, execute workflow contents, run package scripts from the PR branch, or invoke changed workflows.
+For a repository that keeps a GitLab CI configuration on GitHub (for example a mirror), set `provider: gitlab-ci`:
+
+```yaml
+- uses: tengfone/ci-delta@v0
+  with:
+    provider: gitlab-ci
+```
+
+The action reads base and head CI files (workflow files, or `.gitlab-ci.yml` and its local includes) through the GitHub API. It does not check out pull request code, execute workflow contents, run package scripts from the PR branch, or invoke changed workflows.
 
 Action inputs:
 
 ```txt
-provider       github-actions for v0
+provider       github-actions (alias gha, github) or gitlab-ci (alias gitlab)
 comment        post or update a sticky PR comment, default true
 fail-on        none, low, medium, high, or critical
 format         markdown or json
@@ -162,15 +195,15 @@ Recommendation: Avoid checking out pull request head code in privileged workflow
 `ci-delta` reviews CI/CD changes, so the action wrapper is intentionally narrow:
 
 - Uses `pull_request_target` only for metadata, file reads, summaries, and comments
-- Reads workflow files through GitHub Git tree/blob APIs
+- Reads CI config files through GitHub Git tree/blob APIs
 - Supports fork PRs by reading base and head repositories separately
 - Does not checkout PR code
-- Does not run shell commands from workflow files
+- Does not run shell commands from CI config files
 - Does not execute package scripts from the PR branch
-- Does not evaluate GitHub Actions expressions
+- Does not evaluate GitHub Actions expressions or GitLab rule expressions
 - Posts a sticky PR comment instead of emitting generated workflow commands
 
-The local CLI uses `git ls-tree` and `git show` for trusted local refs.
+The local CLI uses `git ls-tree` and `git cat-file` for trusted local refs.
 
 ## Rule Model
 
@@ -187,12 +220,12 @@ set is updated.
 
 ## Data Handling
 
-The GitHub Action reads pull request metadata and workflow file contents from
+The GitHub Action reads pull request metadata and CI config file contents from
 the base and head repositories through GitHub APIs. When `comment: true` is
 enabled, it posts or updates one sticky pull request comment containing the CI
 Delta report.
 
-`ci-delta` does not send repository contents, workflow files, pull request data,
+`ci-delta` does not send repository contents, CI config files, pull request data,
 tokens, or generated reports to third-party services. It does not persist data
 outside the current GitHub Actions run.
 
@@ -227,7 +260,7 @@ Fixtures live in `fixtures/github-actions` and `fixtures/gitlab-ci`. Each fixtur
 Stable releases are driven by GitHub Releases:
 
 1. Update `package.json` to the next stable semver version and merge to `main`.
-2. Create and publish a GitHub Release whose tag exactly matches the package version, such as `v0.1.2`.
+2. Create and publish a GitHub Release whose tag exactly matches the package version, such as `v0.2.0`.
 3. The `Release` workflow verifies the tag, runs the production package gates, publishes the package to npm, and moves the matching major action tag, such as `v0`.
 
 Prereleases are not published automatically yet. Keep `v*` release tags protected with GitHub repository rules so only maintainers can create or move release tags.
@@ -255,22 +288,19 @@ GitHub Actions support reads:
 
 It does not fully expand reusable workflows.
 
-GitLab CI is supported for root `.gitlab-ci.yml` and `.gitlab-ci.yaml`. Local `include:` files are read from the same git ref when that path exists:
+GitLab CI support reads the root `.gitlab-ci.yml` or `.gitlab-ci.yaml` and the local `include:` files it reaches at the same git ref, including `*` and `**` wildcards. Use `--include <glob>` to add a root file with a custom CI config path.
 
-```bash
-npx ci-delta gitlab-ci --base origin/main --head HEAD
-```
+GitLab CI support does not:
 
-That scope reports new or removed CI files, invalid YAML, job or workflow rules that are removed or match more broadly, protected variables, new protected-looking secret references such as `$CI_JOB_TOKEN`, runner tag changes, image and service image changes, new `id_tokens`, and new or removed jobs. Each finding cites the file and the YAML it used.
-
-GitLab CI support does not fetch remote includes, expand child pipelines, expand `extends` or `!reference`, or fully evaluate `rules:` expressions. A newly added remote, project, template, or component include, or a local include whose path is missing, is reported as not expanded. When a rule cannot prove the runtime behavior, it reports the concrete config delta and recommends human review.
+- fetch `remote`, `project`, `template`, or `component` includes. A newly added one, or a local include whose path is missing, is reported as not expanded, and jobs it would define are not compared.
+- evaluate `include:rules`; conditional local includes are treated as always applied, and the condition is reported.
+- substitute `spec:inputs` into included files.
+- analyze child or multi-project pipelines started by `trigger:`; the trigger target is compared, not the downstream configuration.
+- evaluate `rules:if` or `only:variables` expressions against real pipeline variables. Rule changes are compared structurally; anything ci-delta cannot prove narrower is reported as changed rather than ignored.
+- read project settings such as protected branches, protected environments, or masked and protected CI/CD variables.
 
 ## Roadmap
 
-The provider interface is CI/CD-platform neutral. GitLab CI is supported for the scope above:
+The provider interface is CI/CD-platform neutral. GitHub Actions and GitLab CI are supported for the scope above.
 
-```bash
-npx ci-delta gitlab-ci --base origin/main --head HEAD
-```
-
-Later GitLab work can cover protected environment changes, deployment gates, include `rules:`, `extends` / `!reference` expansion, and child pipeline triggers. Remote includes and full rule evaluation stay out of scope until they can be reported without pretending the runtime was evaluated.
+Later GitLab work can cover `include:rules` evaluation, `spec:inputs`, and child pipeline configuration from local files. Remote includes and full rule evaluation stay out of scope until they can be reported without pretending the runtime was evaluated.

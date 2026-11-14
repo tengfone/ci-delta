@@ -1,6 +1,6 @@
 {
   "name": "ci-delta",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Semantic diff reports for CI/CD config changes",
   "type": "module",
   "main": "dist/index.js",
@@ -40,10 +40,15 @@
   },
   "keywords": [
     "github-actions",
+    "gitlab",
+    "gitlab-ci",
     "security",
     "ci",
     "cd",
-    "workflow"
+    "ci-cd",
+    "pipeline",
+    "workflow",
+    "semantic-diff"
   ],
   "author": "tengfone",
   "license": "MIT",
